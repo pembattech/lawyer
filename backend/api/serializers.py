@@ -1,0 +1,107 @@
+from rest_framework import serializers
+from datetime import datetime
+from .models import User
+from .models import Appointment
+from .models import ContactMessage
+from .models import Document
+from .models import CaseUpdate
+from .models import CaseSummary
+from django.contrib.auth.password_validation import validate_password
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'email', 'first_name', 'last_name', 'address', 'age', 'sex', 'date_joined', 'role')
+        
+
+class RegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+    confirmPassword = serializers.CharField(write_only=True, required=True)
+    
+    class Meta:
+        model = User
+        fields = ('email', 'password', 'confirmPassword', 'first_name', 'last_name', 'address', 'age', 'sex')
+        
+    def validate(self, attrs):
+        if attrs['password'] != attrs['confirmPassword']:
+            raise serializers.ValidationError({"password": "Password fields didn't match."})
+        return attrs
+        
+    def create(self, validated_data):
+        # Remove confirmPassword from the data as it's not part of the User model
+        validated_data.pop('confirmPassword', None)
+        
+        # Set a default username based on email since our User model still requires it
+        validated_data['username'] = validated_data['email'].split('@')[0]
+        
+        user = User.objects.create_user(**validated_data)
+        return user
+
+class AppointmentSerializer(serializers.ModelSerializer):
+    # Accept alias fields for flexibility
+    service = serializers.CharField(write_only=True, required=True)
+    date = serializers.DateField(write_only=True, required=True)
+    time = serializers.CharField(write_only=True, required=True)
+    message = serializers.CharField(write_only=True, required=False, allow_blank=True)
+
+    class Meta:
+        model = Appointment
+        fields = ['name', 'email', 'phone', 'service', 'date', 'time', 'message']
+
+    def validate_time(self, value):
+        try:
+            # Convert '11:00 AM' → datetime.time object
+            return datetime.strptime(value.strip(), "%I:%M %p").time()
+        except ValueError:
+            raise serializers.ValidationError("Time format must be like '11:00 AM' or '3:30 PM'")
+
+
+    def validate(self, attrs):
+        # Map the incoming keys to model keys
+        attrs['service_needed'] = attrs.pop('service')
+        attrs['preferred_date'] = attrs.pop('date')
+        attrs['preferred_time'] = attrs.pop('time')
+        attrs['description'] = attrs.pop('message', '')
+        return attrs
+
+    def create(self, validated_data):
+        return Appointment.objects.create(**validated_data)
+    
+
+class ContactMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContactMessage
+        fields = ['name', 'email', 'phone', 'message']
+
+    def validate_name(self, value):
+        if not value.strip():
+            raise serializers.ValidationError("Name cannot be blank.")
+        return value
+
+    def validate_message(self, value):
+        if not value.strip():
+            raise serializers.ValidationError("Message cannot be blank.")
+        return value
+    
+class DocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Document
+        fields = ['id', 'name', 'file', 'user']
+        read_only_fields = ['user']
+
+class CaseUpdateSerializer(serializers.ModelSerializer):
+    user_email = serializers.EmailField(source='case_summary.user.email', read_only=True)
+
+    class Meta:
+        model = CaseUpdate
+        fields = ['id', 'user_email', 'title', 'details', 'updated_at']
+        read_only_fields = ['updated_at']
+
+
+class CaseSummarySerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    updates = CaseUpdateSerializer(many=True, read_only=True)  # thanks to related_name='updates'
+
+    class Meta:
+        model = CaseSummary
+        fields = ['id', 'case_number', 'case_type', 'filed_date', 'status', 'user', 'updates']
