@@ -1,29 +1,24 @@
 from rest_framework import generics, status, permissions, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.parsers import MultiPartParser
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import CaseSummary
-from .serializers import CaseSummarySerializer
-from .serializers import RegisterSerializer, UserSerializer, AppointmentSerializer
-from .models import User, Document, CaseUpdate
-from .serializers import ContactMessageSerializer
-from .serializers import DocumentSerializer
-from .serializers import CaseUpdateSerializer
+from .models import User, Document, CaseSummary, CaseUpdate
+from .serializers import (
+    RegisterSerializer, UserSerializer, AppointmentSerializer,
+    ContactMessageSerializer, DocumentSerializer, CaseSummarySerializer, CaseUpdateSerializer
+)
+
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     permission_classes = (permissions.AllowAny,)
     serializer_class = RegisterSerializer
-    
+
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        
-        # Generate tokens for the user
         refresh = RefreshToken.for_user(user)
-        
         return Response({
             "user": UserSerializer(user).data,
             "refresh": str(refresh),
@@ -34,18 +29,18 @@ class RegisterView(generics.CreateAPIView):
 class UserDetailView(generics.RetrieveAPIView):
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = UserSerializer
-    
+
     def get_object(self):
         return self.request.user
 
-        
-    
-    
+
 class AppointmentCreateView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
     def post(self, request):
         serializer = AppointmentSerializer(data=request.data)
         if serializer.is_valid():
-            appointment = serializer.save()
+            serializer.save(user=request.user)
             return Response({"message": "Appointment created successfully"}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -64,23 +59,27 @@ class DocumentUploadViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        # Return only documents that belong to the currently logged-in user
-        return Document.objects.filter(user=self.request.user)
+        user = self.request.user
+        if user.role == 'admin':
+            return Document.objects.all()
+        return Document.objects.filter(user=user)
 
     def perform_create(self, serializer):
-        # Automatically assign the current user to the uploaded document
         serializer.save(user=self.request.user)
 
+
 class CaseSummaryViewSet(viewsets.ModelViewSet):
-    queryset = CaseSummary.objects.all()
     serializer_class = CaseSummarySerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def get_queryset(self):
+        user = self.request.user
+        if user.role == 'admin':
+            return CaseSummary.objects.all()
+        return CaseSummary.objects.filter(user=user)
+
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
-
-    def get_queryset(self):
-        return CaseSummary.objects.filter(user=self.request.user)
 
 
 class CaseUpdateViewSet(viewsets.ModelViewSet):
@@ -88,5 +87,7 @@ class CaseUpdateViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        # User indirectly connected via CaseSummary
-        return CaseUpdate.objects.filter(case_summary__user=self.request.user)
+        user = self.request.user
+        if user.role == 'admin':
+            return CaseUpdate.objects.all()
+        return CaseUpdate.objects.filter(case_summary__user=user)
