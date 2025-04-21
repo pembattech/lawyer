@@ -10,8 +10,8 @@ import ClientDashboard from './Component/clientsection/clientdashboard';
 import './index.css';
 import './App.css';
 import AppointmentPage from './Component/AppointmentPage';
-import AdminDashboard from './Component/AdminDashboard';
-import Appointment from './Component/Appointment';
+import AdminDashboard from './Component/admin/AdminDashboard';
+import Appointment from './Component/admin/AdminAppointment';
 
 function App() {
   return (
@@ -24,13 +24,13 @@ function App() {
           {/* Other routes */}
           <Route path="/services" element={<ServicesPage />} />
           <Route path="/AppointmentPage" element={<AppointmentPage />} />
-          <Route path='/Appointment' element={<Appointment />} />
           <Route path="/ContactPage" element={<ContactPage/>} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/clientdashboard" element={<ClientDashboard />} />
 
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path='/admin/appointment' element={<Appointment />} />
           {/* Add more routes as needed */}
         </Routes>
       </div>

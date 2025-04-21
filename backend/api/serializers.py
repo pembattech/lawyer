@@ -37,24 +37,39 @@ class RegisterSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(**validated_data)
         return user
 
+from rest_framework import serializers
+from datetime import datetime
+from .models import Appointment
+
 class AppointmentSerializer(serializers.ModelSerializer):
-    # Accept alias fields for flexibility
+    # Incoming aliases (for POST/PUT)
     service = serializers.CharField(write_only=True, required=True)
     date = serializers.DateField(write_only=True, required=True)
     time = serializers.CharField(write_only=True, required=True)
     message = serializers.CharField(write_only=True, required=False, allow_blank=True)
 
+    # Outgoing values (for GET)
+    service_needed = serializers.CharField(read_only=True)
+    preferred_date = serializers.DateField(read_only=True)
+    preferred_time = serializers.SerializerMethodField()
+    description = serializers.CharField(read_only=True)
+
     class Meta:
         model = Appointment
-        fields = ['name', 'email', 'phone', 'service', 'date', 'time', 'message']
+        fields = [
+            'id', 'name', 'email', 'phone',
+            'service', 'date', 'time', 'message',  # incoming aliases
+            'service_needed', 'preferred_date', 'preferred_time', 'description'  # outgoing fields
+        ]
+
+    def get_preferred_time(self, obj):
+        return obj.preferred_time.strftime('%I:%M %p') if obj.preferred_time else None
 
     def validate_time(self, value):
         try:
-            # Convert '11:00 AM' → datetime.time object
             return datetime.strptime(value.strip(), "%I:%M %p").time()
         except ValueError:
             raise serializers.ValidationError("Time format must be like '11:00 AM' or '3:30 PM'")
-
 
     def validate(self, attrs):
         # Map the incoming keys to model keys
@@ -66,7 +81,12 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return Appointment.objects.create(**validated_data)
-    
+
+    def update(self, instance, validated_data):
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
 
 class ContactMessageSerializer(serializers.ModelSerializer):
     class Meta:
