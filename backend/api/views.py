@@ -1,9 +1,10 @@
 from rest_framework import generics, status, permissions, viewsets
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import User, Document, CaseSummary, CaseUpdate, Appointment
+from .models import User, Document, CaseSummary, CaseUpdate, Appointment, ContactMessage
 from .serializers import (
     RegisterSerializer, UserSerializer, AppointmentSerializer,
     ContactMessageSerializer, DocumentSerializer, CaseSummarySerializer, CaseUpdateSerializer
@@ -65,18 +66,36 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             raise permissions.PermissionDenied("You do not have permission to delete this appointment.")
         instance.delete()
 
-
 # ---------------------------
-# Contact Message
+# Contact Message ViewSet
 # ---------------------------
-class ContactMessageView(APIView):
-    def post(self, request):
-        serializer = ContactMessageSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"message": "Thank you for contacting us!"}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class ContactMessageViewSet(viewsets.ModelViewSet):
+    serializer_class = ContactMessageSerializer
+    queryset = ContactMessage.objects.all()
 
+    def get_permissions(self):
+        if self.action in ['create']:
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_authenticated and user.role == 'admin':
+            return ContactMessage.objects.all()
+        return ContactMessage.objects.none()
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+    def perform_update(self, serializer):
+        if self.request.user.role != 'admin':
+            raise permissions.PermissionDenied("Only admins can update contact messages.")
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        if self.request.user.role != 'admin':
+            raise permissions.PermissionDenied("Only admins can delete contact messages.")
+        instance.delete()
 
 # ---------------------------
 # Document ViewSet
@@ -141,21 +160,35 @@ class CaseUpdateViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
+        case_summary_id = self.kwargs.get('case_summary_id')  # Get case_summary_id from the URL parameters
+        
+        if case_summary_id:
+            # If case_summary_id is provided in the URL, filter updates for the specific case summary
+            queryset = CaseUpdate.objects.filter(case_summary_id=case_summary_id)
+        else:
+            # Default to returning all updates if no case_summary_id is provided
+            queryset = CaseUpdate.objects.all()
+        
+        # If the user is an admin, return all case updates
         if user.role == 'admin':
-            return CaseUpdate.objects.all()
-        return CaseUpdate.objects.filter(case_summary__user=user)
+            return queryset
+        # Otherwise, filter updates based on the case summary user
+        return queryset.filter(case_summary__user=user)
 
     def perform_create(self, serializer):
+        # Ensure the user is allowed to create updates for this case summary
         if self.request.user.role != 'admin' and serializer.validated_data['case_summary'].user != self.request.user:
-            raise permissions.PermissionDenied("You do not have permission to add updates to this case.")
+            raise PermissionDenied("You do not have permission to add updates to this case.")
         serializer.save()
 
     def perform_update(self, serializer):
+        # Ensure the user is allowed to update this case update
         if self.request.user.role != 'admin' and serializer.instance.case_summary.user != self.request.user:
-            raise permissions.PermissionDenied("You do not have permission to update this case update.")
+            raise PermissionDenied("You do not have permission to update this case update.")
         serializer.save()
 
     def perform_destroy(self, instance):
+        # Ensure the user is allowed to delete this case update
         if self.request.user.role != 'admin' and instance.case_summary.user != self.request.user:
-            raise permissions.PermissionDenied("You do not have permission to delete this case update.")
+            raise PermissionDenied("You do not have permission to delete this case update.")
         instance.delete()

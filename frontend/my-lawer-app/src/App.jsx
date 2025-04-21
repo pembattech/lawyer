@@ -11,7 +11,9 @@ import './index.css';
 import './App.css';
 import AppointmentPage from './Component/AppointmentPage';
 import AdminDashboard from './Component/admin/AdminDashboard';
-import Appointment from './Component/admin/AdminAppointment';
+import AdminAppointment from './Component/admin/AdminAppointment';
+import AdminContactMessage from './Component/admin/AdminContactMessage';
+import AdminCaseSummary from './Component/admin/AdminCaseSummary';
 
 function App() {
   return (
@@ -30,7 +32,9 @@ function App() {
           <Route path="/clientdashboard" element={<ClientDashboard />} />
 
           <Route path="/admin" element={<AdminDashboard />} />
-          <Route path='/admin/appointment' element={<Appointment />} />
+          <Route path='/admin/appointment' element={<AdminAppointment />} />
+          <Route path="/admin/contact-message" element={<AdminContactMessage />} />
+          <Route path="/admin/case" element={<AdminCaseSummary />} />
           {/* Add more routes as needed */}
         </Routes>
       </div>

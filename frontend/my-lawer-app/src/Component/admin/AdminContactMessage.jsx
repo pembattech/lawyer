@@ -2,9 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 import Sidebar from './AdminSidebar';
-
 import useAuthRedirect from './../hook/useAuthRedirect';
-
 
 axios.defaults.baseURL = 'http://127.0.0.1:8000';
 
@@ -19,17 +17,14 @@ axios.interceptors.request.use(
     error => Promise.reject(error)
 );
 
-const AdminAppointment = () => {
+const AdminContactMessage = () => {
     useAuthRedirect();
 
-    const [appointments, setAppointments] = useState([]);
+    const [messages, setMessages] = useState([]);
     const [formData, setFormData] = useState({
         name: '',
         email: '',
         phone: '',
-        service: '',
-        date: '',
-        time: '',
         message: '',
     });
     const [editingId, setEditingId] = useState(null);
@@ -37,15 +32,15 @@ const AdminAppointment = () => {
     const [showModal, setShowModal] = useState(false);
 
     useEffect(() => {
-        fetchAppointments();
+        fetchMessages();
     }, []);
 
-    const fetchAppointments = async () => {
+    const fetchMessages = async () => {
         try {
-            const response = await axios.get('/api/appointments/');
-            setAppointments(response.data);
+            const response = await axios.get('/api/contact-messages/');
+            setMessages(response.data);
         } catch (error) {
-            console.error('Error fetching appointments:', error);
+            console.error('Error fetching messages:', error);
         }
     };
 
@@ -54,79 +49,53 @@ const AdminAppointment = () => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const convertTo12Hour = (time24) => {
-        if (!time24) return '';
-        const [hour, minute] = time24.split(':');
-        let hourNum = parseInt(hour);
-        const ampm = hourNum >= 12 ? 'PM' : 'AM';
-        hourNum = hourNum % 12 || 12;
-        return `${hourNum}:${minute} ${ampm}`;
-    };
-
-    const convertTo24Hour = (time12) => {
-        if (!time12) return '';
-        const [time, ampm] = time12.split(' ');
-        let [hour, minute] = time.split(':');
-        hour = parseInt(hour);
-        if (ampm === 'PM' && hour !== 12) hour += 12;
-        if (ampm === 'AM' && hour === 12) hour = 0;
-        return `${hour}:${minute}`;
-    };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const convertedTime = formData.time ? convertTo12Hour(formData.time) : '';
         const payload = {
             name: formData.name,
             email: formData.email,
             phone: formData.phone,
-            service: formData.service,
-            date: formData.date,
-            time: convertedTime,
             message: formData.message,
         };
 
         const method = editingId ? 'put' : 'post';
-        const url = editingId ? `/api/appointments/${editingId}/` : '/api/appointments/';
+        const url = editingId ? `/api/contact-messages/${editingId}/` : '/api/contact-messages/';
 
         try {
             const response = await axios[method](url, payload);
             if (editingId) {
-                setAppointments(prev => prev.map(a => (a.id === editingId ? response.data : a)));
+                setMessages(prev => prev.map(m => (m.id === editingId ? response.data : m)));
             } else {
-                setAppointments(prev => [...prev, response.data]);
+                setMessages(prev => [...prev, response.data]);
             }
             resetForm();
         } catch (error) {
-            console.error('Error submitting appointment:', error);
+            console.error('Error submitting contact message:', error);
         }
     };
 
     const handleEdit = (id) => {
-        const appointment = appointments.find(a => a.id === id);
-        if (appointment) {
+        const message = messages.find(m => m.id === id);
+        if (message) {
             setEditingId(id);
             setFormData({
-                name: appointment.name || '',
-                email: appointment.email || '',
-                phone: appointment.phone || '',
-                service: appointment.service_needed || '',
-                date: appointment.preferred_date || '',
-                time: convertTo24Hour(appointment.preferred_time) || '',
-                message: appointment.description || '',
+                name: message.name || '',
+                email: message.email || '',
+                phone: message.phone || '',
+                message: message.message || '',
             });
             setShowModal(true);
         }
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm('Are you sure you want to delete this appointment?')) {
+        if (window.confirm('Are you sure you want to delete this message?')) {
             try {
-                await axios.delete(`/api/appointments/${id}/`);
-                setAppointments(prev => prev.filter(a => a.id !== id));
+                await axios.delete(`/api/contact-messages/${id}/`);
+                setMessages(prev => prev.filter(m => m.id !== id));
             } catch (error) {
-                console.error('Error deleting appointment:', error);
+                console.error('Error deleting message:', error);
             }
         }
     };
@@ -140,9 +109,6 @@ const AdminAppointment = () => {
             name: '',
             email: '',
             phone: '',
-            service: '',
-            date: '',
-            time: '',
             message: '',
         });
         setEditingId(null);
@@ -154,16 +120,16 @@ const AdminAppointment = () => {
             <Sidebar />
             <main className="flex-1 p-4 bg-gray-100 min-h-screen">
                 <div className="p-4">
-                    <h1 className="text-3xl font-bold mb-6 text-center text-indigo-600">Appointment</h1>
+                    <h1 className="text-3xl font-bold mb-6 text-center text-indigo-600">Contact Messages</h1>
 
                     <button
                         onClick={() => setShowModal(true)}
                         className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition duration-200 mb-6"
                     >
-                        Create Appointment
+                        Create Contact Message
                     </button>
 
-                    {/* Modal for creating/editing appointment */}
+                    {/* Modal for creating/editing contact message */}
                     {showModal && (
                         <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6 space-y-4 mb-10">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -191,32 +157,6 @@ const AdminAppointment = () => {
                                     value={formData.phone}
                                     onChange={handleChange}
                                     placeholder="Phone"
-                                    required
-                                    className="border rounded p-2 w-full"
-                                />
-                                <input
-                                    type="text"
-                                    name="service"
-                                    value={formData.service}
-                                    onChange={handleChange}
-                                    placeholder="Service Needed"
-                                    required
-                                    className="border rounded p-2 w-full"
-                                />
-                                <input
-                                    type="date"
-                                    name="date"
-                                    value={formData.date}
-                                    onChange={handleChange}
-                                    required
-                                    className="border rounded p-2 w-full"
-                                />
-                                <input
-                                    type="time"
-                                    name="time"
-                                    value={formData.time}
-                                    onChange={handleChange}
-                                    required
                                     className="border rounded p-2 w-full"
                                 />
                             </div>
@@ -225,8 +165,9 @@ const AdminAppointment = () => {
                                 name="message"
                                 value={formData.message}
                                 onChange={handleChange}
-                                placeholder="Description"
+                                placeholder="Message"
                                 className="border rounded p-2 w-full"
+                                required
                             />
 
                             <div className="flex justify-between">
@@ -234,7 +175,7 @@ const AdminAppointment = () => {
                                     type="submit"
                                     className="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 transition duration-200"
                                 >
-                                    {editingId ? 'Update' : 'Create'} Appointment
+                                    {editingId ? 'Update' : 'Create'} Message
                                 </button>
                                 <button
                                     type="button"
@@ -248,32 +189,32 @@ const AdminAppointment = () => {
                     )}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        {/* Left Column - Appointment list */}
+                        {/* Left Column - Contact message list */}
                         <div className="space-y-4">
-                            <h2 className="text-xl font-semibold mb-4">Appointments</h2>
+                            <h2 className="text-xl font-semibold mb-4">Messages</h2>
                             <ul>
-                                {appointments.map(appointment => (
+                                {messages.map(message => (
                                     <li
-                                        key={appointment.id}
+                                        key={message.id}
                                         className="bg-gray-100 hover:bg-gray-200 p-4 mt-4 mb-4 rounded flex items-center justify-between"
                                     >
-                                        <div className="flex-1" onClick={() => handleViewDetails(appointment.id)}>
+                                        <div className="flex-1" onClick={() => handleViewDetails(message.id)}>
                                             <p
                                                 className="font-medium cursor-pointer"
                                             >
-                                                {appointment.name}
+                                                {message.name}
                                             </p>
-                                            <p className="text-sm text-gray-600">{appointment.service_needed}</p>
+                                            <p className="text-sm text-gray-600">Phone: {message.phone}</p>
                                         </div>
                                         <div className="space-x-2">
                                             <button
-                                                onClick={() => handleEdit(appointment.id)}
+                                                onClick={() => handleEdit(message.id)}
                                                 className="text-blue-600 hover:underline"
                                             >
                                                 Edit
                                             </button>
                                             <button
-                                                onClick={() => handleDelete(appointment.id)}
+                                                onClick={() => handleDelete(message.id)}
                                                 className="text-red-600 hover:underline"
                                             >
                                                 Delete
@@ -288,15 +229,12 @@ const AdminAppointment = () => {
                         <div className="bg-white p-6 shadow-lg rounded">
                             {detailId ? (
                                 <>
-                                    <h3 className="text-xl font-semibold mb-4">Appointment Details</h3>
+                                    <h3 className="text-xl font-semibold mb-4">Message Details</h3>
                                     <div>
-                                        <p><strong>Name:</strong> {appointments.find(a => a.id === detailId).name}</p>
-                                        <p><strong>Email:</strong> {appointments.find(a => a.id === detailId).email}</p>
-                                        <p><strong>Phone:</strong> {appointments.find(a => a.id === detailId).phone}</p>
-                                        <p><strong>Service:</strong> {appointments.find(a => a.id === detailId).service_needed}</p>
-                                        <p><strong>Date:</strong> {appointments.find(a => a.id === detailId).preferred_date}</p>
-                                        <p><strong>Time:</strong> {appointments.find(a => a.id === detailId).preferred_time}</p>
-                                        <p><strong>Message:</strong> {appointments.find(a => a.id === detailId).description}</p>
+                                        <p><strong>Name:</strong> {messages.find(m => m.id === detailId).name}</p>
+                                        <p><strong>Email:</strong> {messages.find(m => m.id === detailId).email}</p>
+                                        <p><strong>Phone:</strong> {messages.find(m => m.id === detailId).phone}</p>
+                                        <p><strong>Message:</strong> {messages.find(m => m.id === detailId).message}</p>
                                     </div>
                                     <button
                                         onClick={() => setDetailId(null)}
@@ -306,7 +244,7 @@ const AdminAppointment = () => {
                                     </button>
                                 </>
                             ) : (
-                                <p className="text-gray-600">Select an appointment to view details.</p>
+                                <p className="text-gray-600">Select a message to view details.</p>
                             )}
                         </div>
                     </div>
@@ -316,4 +254,4 @@ const AdminAppointment = () => {
     );
 };
 
-export default AdminAppointment;
+export default AdminContactMessage;

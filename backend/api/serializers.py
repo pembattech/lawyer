@@ -91,7 +91,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
 class ContactMessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContactMessage
-        fields = ['name', 'email', 'phone', 'message']
+        fields = ['id', 'name', 'email', 'phone', 'message']
 
     def validate_name(self, value):
         if not value.strip():
@@ -110,13 +110,10 @@ class DocumentSerializer(serializers.ModelSerializer):
         read_only_fields = ['user']
 
 class CaseUpdateSerializer(serializers.ModelSerializer):
-    user_email = serializers.EmailField(source='case_summary.user.email', read_only=True)
-
     class Meta:
         model = CaseUpdate
-        fields = ['id', 'user_email', 'title', 'details', 'updated_at']
+        fields = ['id', 'case_summary', 'title', 'details', 'updated_at']
         read_only_fields = ['updated_at']
-
 
 class CaseSummarySerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)

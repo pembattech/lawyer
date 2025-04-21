@@ -3,7 +3,6 @@ import { Link, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Sidebar from './AdminSidebar';
 
 const AdminLayout = () => {
-    const location = useLocation();
 
     return (
         <div className="flex">
