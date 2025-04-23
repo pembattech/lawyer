@@ -111,9 +111,10 @@ class Document(models.Model):
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    case_summary = models.ForeignKey(CaseSummary, on_delete=models.CASCADE, related_name='documents')
     name = models.CharField(max_length=255, choices=NAME_CHOICES)
     file = models.FileField(upload_to='documents/')
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.name} ({self.user.first_name} {self.user.last_name})"
+        return f"{self.name} - Case {self.case_summary.case_number} ({self.user.first_name} {self.user.last_name})"

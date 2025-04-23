@@ -7,14 +7,35 @@ from django.utils.html import format_html
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
     model = User
-    list_display = ('email', 'username', 'first_name', 'last_name', 'is_staff')
+    list_display = ('email', 'username', 'first_name', 'last_name', 'role', 'is_staff')
     search_fields = ('email', 'username', 'first_name', 'last_name')
     ordering = ('email',)
+
     fieldsets = BaseUserAdmin.fieldsets + (
-        (None, {'fields': ('address', 'age', 'sex')}),
+        ('Additional Info', {
+            'fields': (
+                'address',
+                'age',
+                'sex',
+                'date_of_birth',
+                'phone_number',
+                'role',
+            )
+        }),
     )
+
     add_fieldsets = BaseUserAdmin.add_fieldsets + (
-        (None, {'fields': ('address', 'age', 'sex')}),
+        ('Additional Info', {
+            'classes': ('wide',),
+            'fields': (
+                'address',
+                'age',
+                'sex',
+                'date_of_birth',
+                'phone_number',
+                'role',
+            ),
+        }),
     )
 
 # Appointment Admin

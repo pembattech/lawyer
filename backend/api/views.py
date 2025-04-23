@@ -100,7 +100,7 @@ class ContactMessageViewSet(viewsets.ModelViewSet):
 # ---------------------------
 # Document ViewSet
 # ---------------------------
-class DocumentUploadViewSet(viewsets.ModelViewSet):
+class DocumentViewSet(viewsets.ModelViewSet):
     serializer_class = DocumentSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -122,7 +122,6 @@ class DocumentUploadViewSet(viewsets.ModelViewSet):
         if self.request.user.role != 'admin' and instance.user != self.request.user:
             raise permissions.PermissionDenied("You do not have permission to delete this document.")
         instance.delete()
-
 
 # ---------------------------
 # Case Summary ViewSet

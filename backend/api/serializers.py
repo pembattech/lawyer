@@ -104,10 +104,13 @@ class ContactMessageSerializer(serializers.ModelSerializer):
         return value
     
 class DocumentSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField(read_only=True)
+    case_summary = serializers.StringRelatedField(read_only=True)
+
     class Meta:
         model = Document
-        fields = ['id', 'name', 'file', 'user']
-        read_only_fields = ['user']
+        fields = ['id', 'user', 'case_summary', 'name', 'file', 'uploaded_at']
+        read_only_fields = ['id', 'uploaded_at']
 
 class CaseUpdateSerializer(serializers.ModelSerializer):
     class Meta:

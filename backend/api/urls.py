@@ -6,7 +6,7 @@ from .views import (
     UserDetailView,
     AppointmentViewSet,
     ContactMessageViewSet,
-    DocumentUploadViewSet,
+    DocumentViewSet,
     CaseUpdateViewSet,
     CaseSummaryViewSet
 )
@@ -14,11 +14,12 @@ from .views import (
 
 router = DefaultRouter()
 router.register(r'appointments', AppointmentViewSet, basename='appointment')  
-router.register(r'documents', DocumentUploadViewSet, basename='document')
+router.register(r'documents', DocumentViewSet, basename='document')
 router.register(r'case-updates', CaseUpdateViewSet, basename='case-update')
 router.register(r'case-summaries', CaseSummaryViewSet, basename='case-summary')
 router.register(r'contact-messages', ContactMessageViewSet, basename='contact-message')
 router.register(r'case-summary/(?P<case_summary_id>\d+)/updates', CaseUpdateViewSet, basename='case-update-for-case-summary')
+router.register(r'case-summary/(?P<case_summary_id>\d+)/documents', DocumentViewSet, basename='case-document-for-case-summary')
 
 
 urlpatterns = [

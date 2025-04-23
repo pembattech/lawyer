@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import AdminDocuments from './AdminDocuments';
+
 
 const AdminCaseUpdates = ({ caseSummaryId }) => {
+  const [showDocuments, setShowDocuments] = useState(false);
   const [updates, setUpdates] = useState([]);
   const [form, setForm] = useState({ title: '', details: '' });
   const [editId, setEditId] = useState(null);
@@ -82,6 +85,20 @@ const AdminCaseUpdates = ({ caseSummaryId }) => {
       >
         + Add Update
       </button>
+
+      <button
+        className="mb-4 ml-4 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
+        onClick={() => setShowDocuments(true)}
+      >
+        📄 View Documents
+      </button>
+
+      {showDocuments && (
+        <AdminDocuments
+          caseSummaryId={caseSummaryId}
+          onClose={() => setShowDocuments(false)}
+        />
+      )}
 
       {/* Modal */}
       {showModal && (
