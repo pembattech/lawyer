@@ -38,14 +38,11 @@ const LawyerDashboard = () => {
             <h1 className="text-3xl font-bold mb-4">Lawyer Dashboard</h1>
             <p className="mb-6 text-gray-600">Welcome, {user.first_name} {user.last_name}!</p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-white shadow rounded-lg p-4">
-                    <h2 className="text-xl font-semibold mb-3">Your Cases</h2>
-                    <LawyerCases lawyerId={user.id} />
-                </div>
-
-                {/* Add other sections as needed */}
+            <div className="bg-white shadow rounded-lg p-4">
+                <h2 className="text-xl font-semibold mb-3">Your Cases</h2>
+                <LawyerCases lawyerId={user.id} />
             </div>
+
         </div>
     );
 };
