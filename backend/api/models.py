@@ -82,7 +82,9 @@ class CaseSummary(models.Model):
         ], 
         default='active'  # The status of the case
     )
-    user = models.ForeignKey(User, on_delete=models.CASCADE)  # Linking case summary to a user
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='filed_cases')  # Who filed the case
+    lawyer = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='lawyer_cases')  # Lawyer handling the case
+
 
     def __str__(self):
         return f"Case {self.case_number} - {self.case_type}"

@@ -134,7 +134,10 @@ class CaseSummaryViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if user.role == 'admin':
             return CaseSummary.objects.all()
-        return CaseSummary.objects.filter(user=user)
+        elif user.role == 'lawyer':
+            return CaseSummary.objects.filter(lawyer=user)
+        else:
+            return CaseSummary.objects.none()
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -148,6 +151,7 @@ class CaseSummaryViewSet(viewsets.ModelViewSet):
         if self.request.user.role != 'admin' and instance.user != self.request.user:
             raise permissions.PermissionDenied("You do not have permission to delete this case summary.")
         instance.delete()
+
 
 
 # ---------------------------

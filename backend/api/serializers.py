@@ -121,7 +121,17 @@ class CaseUpdateSerializer(serializers.ModelSerializer):
 class CaseSummarySerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     updates = CaseUpdateSerializer(many=True, read_only=True)  # thanks to related_name='updates'
+    lawyer_id = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.filter(role='lawyer'),
+        source='lawyer',  # maps to the actual model field
+        write_only=True,
+        required=False
+    )
+    lawyer = UserSerializer(read_only=True)  # Optional: include full lawyer details
 
     class Meta:
         model = CaseSummary
-        fields = ['id', 'case_number', 'case_type', 'filed_date', 'status', 'user', 'updates']
+        fields = [
+            'id', 'case_number', 'case_type', 'filed_date',
+            'status', 'lawyer_id', 'lawyer', 'user', 'updates'
+        ]

@@ -30,14 +30,12 @@ const LoginPage = () => {
     
     try {
       const data = await authService.login(formData.email, formData.password);
-      
+      console.log(data)
+
       // Store tokens if using JWT
       localStorage.setItem('accessToken', data.access);
       localStorage.setItem('refreshToken', data.refresh);
-      
-      // Navigate to dashboard
-      navigate('/clientdashboard', { replace: true });
-      
+
     } catch (err) {
       setError(err.message || 'Invalid email or password');
       console.error('Login error:', err);

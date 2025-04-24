@@ -14,6 +14,8 @@ import AdminDashboard from './Component/admin/AdminDashboard';
 import AdminAppointment from './Component/admin/AdminAppointment';
 import AdminContactMessage from './Component/admin/AdminContactMessage';
 import AdminCaseSummary from './Component/admin/AdminCaseSummary';
+import LawyerDashboard from './Component/lawyersection/LawyerDashboard';
+import LawyerCases from './Component/lawyersection/LawyerCases';
 
 function App() {
   return (
@@ -35,7 +37,9 @@ function App() {
           <Route path='/admin/appointment' element={<AdminAppointment />} />
           <Route path="/admin/contact-message" element={<AdminContactMessage />} />
           <Route path="/admin/case" element={<AdminCaseSummary />} />
-          {/* Add more routes as needed */}
+
+          <Route path="/lawyerdashboard" element={<LawyerDashboard />} />
+          <Route path="/lawyer-cases" element={<LawyerCases />} />
         </Routes>
       </div>
     </Router>
