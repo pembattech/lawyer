@@ -106,21 +106,47 @@ class DocumentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
+        case_summary_id = self.kwargs.get('case_summary_id')  # Get the case_summary_id from the URL kwargs
+        
+        # Start with all documents (default to all documents for admin)
+        queryset = Document.objects.all()
+
+        # If the user is an admin, they can view all documents
         if user.role == 'admin':
-            return Document.objects.all()
-        return Document.objects.filter(user=user)
+            queryset = Document.objects.all()
+
+        # If the user is a lawyer, filter documents based on the lawyer's role
+        elif user.role == 'lawyer':
+            # Lawyers can access their own documents based on user field
+            queryset = Document.objects.filter(user=user)
+
+        # If the user is a regular user, filter documents based on the user
+        else:
+            queryset = Document.objects.filter(user=user)
+
+        # # Apply additional filtering if 'case_summary_id' is provided
+        # if case_summary_id:
+        #     queryset = queryset.filter(case_summary_id=case_summary_id)
+
+        return queryset
+
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        # Retrieve the case_summary_id from the URL and set it explicitly
+        case_summary_id = self.kwargs['case_summary_id']
+        case_summary = CaseSummary.objects.get(id=case_summary_id)
+        
+        # Ensure the user is linked to the current authenticated user
+        serializer.save(user=self.request.user, case_summary=case_summary)
 
     def perform_update(self, serializer):
         if self.request.user.role != 'admin' and serializer.instance.user != self.request.user:
-            raise permissions.PermissionDenied("You do not have permission to update this document.")
+            raise PermissionDenied("You do not have permission to update this document.")
         serializer.save()
 
     def perform_destroy(self, instance):
         if self.request.user.role != 'admin' and instance.user != self.request.user:
-            raise permissions.PermissionDenied("You do not have permission to delete this document.")
+            raise PermissionDenied("You do not have permission to delete this document.")
         instance.delete()
 
 # ---------------------------

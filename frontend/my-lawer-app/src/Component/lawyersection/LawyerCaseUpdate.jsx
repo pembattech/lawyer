@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import LawyerCaseDocumentsModal from './LawyerCaseDocumentsModal';
+
 
 const LawyerCaseUpdate = ({ caseId }) => {
     const [updates, setUpdates] = useState([]);
@@ -10,6 +12,8 @@ const LawyerCaseUpdate = ({ caseId }) => {
     const [error, setError] = useState(null);
     const [selectedUpdate, setSelectedUpdate] = useState(null);
     const [showFormModal, setShowFormModal] = useState(false);
+    const [showDocModal, setShowDocModal] = useState(false);
+
 
     const token = localStorage.getItem('accessToken');
 
@@ -102,6 +106,13 @@ const LawyerCaseUpdate = ({ caseId }) => {
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded mb-6"
             >
                 Add Update
+            </button>
+
+            <button
+                onClick={() => setShowDocModal(true)}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded mb-6 ml-2"
+            >
+                Open Documents
             </button>
 
             {loading ? (
@@ -205,6 +216,14 @@ const LawyerCaseUpdate = ({ caseId }) => {
                     </div>
                 </div>
             )}
+
+            {showDocModal && (
+                <LawyerCaseDocumentsModal
+                    caseId={caseId}
+                    onClose={() => setShowDocModal(false)}
+                />
+            )}
+
         </div>
     );
 };
