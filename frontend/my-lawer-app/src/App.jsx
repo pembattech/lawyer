@@ -16,6 +16,7 @@ import AdminContactMessage from './Component/admin/AdminContactMessage';
 import AdminCaseSummary from './Component/admin/AdminCaseSummary';
 import LawyerDashboard from './Component/lawyersection/LawyerDashboard';
 import LawyerCases from './Component/lawyersection/LawyerCases';
+import LawyerAppointments from './Component/lawyersection/LawyerAppointments';
 
 function App() {
   return (
@@ -40,6 +41,7 @@ function App() {
 
           <Route path="/lawyerdashboard" element={<LawyerDashboard />} />
           <Route path="/lawyer-cases" element={<LawyerCases />} />
+          <Route path="/lawyer-appointments" element={<LawyerAppointments />} />
         </Routes>
       </div>
     </Router>

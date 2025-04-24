@@ -140,10 +140,9 @@ const LawyerCases = ({ lawyerId }) => {
     if (error) return <p style={{ color: 'red' }}>{error}</p>;
 
     return (
-        <div className="flex">
+        <div className="flex h-screen overflow-hidden">
             {/* Left side - Case List */}
-            <div className="p-4 w-1/2">
-                <h2 className="text-xl font-bold mb-4">Cases for Lawyer ID: {lawyerId}</h2>
+            <div className="p-4 w-1/2 overflow-y-auto">
 
                 {/* Button to open modal for case creation */}
                 <button
@@ -157,7 +156,7 @@ const LawyerCases = ({ lawyerId }) => {
                 {cases.length === 0 ? (
                     <p>No cases found for this lawyer.</p>
                 ) : (
-                    <ul className="space-y-3">
+                    <ul className="space-y-3 max-h-[360px] overflow-y-auto">
                         {cases.map((item) => (
                             <li key={item.id} className="border p-3 rounded shadow">
                                 <p><strong>Case Number:</strong> {item.case_number}</p>
@@ -197,7 +196,7 @@ const LawyerCases = ({ lawyerId }) => {
             </div>
 
             {/* Right side - View Case Updates */}
-            <div className="p-4 w-1/2">
+            <div className="p-4 max-h-[435px] w-1/2 overflow-y-auto">
                 {selectedCaseId && <LawyerCaseUpdate caseId={selectedCaseId} />}
             </div>
 

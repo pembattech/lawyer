@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import LawyerCases from './LawyerCases';
+import LawyerAppointments from './LawyerAppointments';
 
 const LawyerDashboard = () => {
     const [user, setUser] = useState(null);
@@ -31,18 +32,26 @@ const LawyerDashboard = () => {
         fetchUser();
     }, []);
 
+
     if (!user) return <div className="text-center mt-10 text-lg">Loading...</div>;
 
     return (
-        <div className="max-w-5xl mx-auto p-6">
-            <h1 className="text-3xl font-bold mb-4">Lawyer Dashboard</h1>
-            <p className="mb-6 text-gray-600">Welcome, {user.first_name} {user.last_name}!</p>
-
-            <div className="bg-white shadow rounded-lg p-4">
-                <h2 className="text-xl font-semibold mb-3">Your Cases</h2>
-                <LawyerCases lawyerId={user.id} />
+        <div className="flex h-screen overflow-hidden">
+            {/* Sidebar */}
+            <div className="w-1/4 bg-gray-800 text-black h-full p-6 overflow-y-auto">
+                <LawyerAppointments lawyerId={user.id} />
             </div>
 
+            {/* Main Content */}
+            <div className="w-3/4 p-6">
+                <h1 className="text-3xl font-bold mb-4">Lawyer Dashboard</h1>
+                <p className="mb-6 text-gray-600">Welcome, {user.first_name} {user.last_name}!</p>
+
+                <div className="bg-white shadow rounded-lg p-4">
+                    <h2 className="text-xl font-semibold mb-3">Your Cases</h2>
+                    <LawyerCases lawyerId={user.id} />
+                </div>
+            </div>
         </div>
     );
 };

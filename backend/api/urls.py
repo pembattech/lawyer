@@ -8,7 +8,8 @@ from .views import (
     ContactMessageViewSet,
     DocumentViewSet,
     CaseUpdateViewSet,
-    CaseSummaryViewSet
+    CaseSummaryViewSet,
+    LawyerListAPIView
 )
 
 
@@ -27,6 +28,7 @@ urlpatterns = [
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('register/', RegisterView.as_view(), name='register'),  
     path('user/', UserDetailView.as_view(), name='user_detail'),  
+    path('lawyers/', LawyerListAPIView.as_view(), name='lawyer-list'),
 
     
     path('', include(router.urls)),

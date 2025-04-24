@@ -45,6 +45,7 @@ class User(AbstractUser):
 
 
 class Appointment(models.Model):
+    lawyer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='appointments')
     name = models.CharField(max_length=255)
     email = models.EmailField()
     phone = models.CharField(max_length=20)
