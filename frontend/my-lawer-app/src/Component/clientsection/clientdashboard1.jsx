@@ -660,7 +660,7 @@ const ClientPortal = () => {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`, // 👈 Add token here
+            "Authorization": `Bearer ${token}`,
           },
         });
 

@@ -6,7 +6,6 @@ import ServicesPage from './Component/Servicespage';
 import ContactPage from './Component/ContactPage';
 import LoginPage from './Component/login';
 import RegisterPage from './Component/register';
-import ClientDashboard from './Component/clientsection/clientdashboard';
 import './index.css';
 import './App.css';
 import AppointmentPage from './Component/AppointmentPage';
@@ -17,6 +16,9 @@ import AdminCaseSummary from './Component/admin/AdminCaseSummary';
 import LawyerDashboard from './Component/lawyersection/LawyerDashboard';
 import LawyerCases from './Component/lawyersection/LawyerCases';
 import LawyerAppointments from './Component/lawyersection/LawyerAppointments';
+import MyCases from './Component/clientsection/clientcase';
+import Dashboard from './Component/clientsection/clientdashboard';
+import Profile from './Component/clientsection/profile';
 
 function App() {
   return (
@@ -32,7 +34,10 @@ function App() {
           <Route path="/ContactPage" element={<ContactPage/>} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/clientdashboard" element={<ClientDashboard />} />
+
+          <Route path="/clientdashboard" element={<Dashboard />} />
+          <Route path="/clientdashboard/my-cases" element={<MyCases />} />
+          <Route path="/clientdashboard/profile" element={< Profile />} />
 
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path='/admin/appointment' element={<AdminAppointment />} />

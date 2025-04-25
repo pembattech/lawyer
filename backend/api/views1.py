@@ -78,9 +78,11 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             return [permissions.AllowAny()]
         return [permissions.IsAuthenticated()]
 
+
     def get_queryset(self):
         user = self.request.user
-        queryset = Appointment.objects.all().order_by("-created_at")
+        queryset = Appointment.objects.all().order_by('-created_at') 
+        
 
         # Allow filtering by lawyer ID from query params
         lawyer_id = self.request.query_params.get("lawyer")
@@ -108,14 +110,14 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             self.request.user.role != "admin"
             and serializer.instance.lawyer != self.request.user
         ):
-            raise PermissionDenied(
+            raise permissions.PermissionDenied(
                 "You do not have permission to update this appointment."
             )
         serializer.save()
 
     def perform_destroy(self, instance):
         if self.request.user.role != "admin" and instance.user != self.request.user:
-            raise PermissionDenied(
+            raise permissions.PermissionDenied(
                 "You do not have permission to delete this appointment."
             )
         instance.delete()
@@ -144,12 +146,16 @@ class ContactMessageViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         if self.request.user.role != "admin":
-            raise PermissionDenied("Only admins can update contact messages.")
+            raise permissions.PermissionDenied(
+                "Only admins can update contact messages."
+            )
         serializer.save()
 
     def perform_destroy(self, instance):
         if self.request.user.role != "admin":
-            raise PermissionDenied("Only admins can delete contact messages.")
+            raise permissions.PermissionDenied(
+                "Only admins can delete contact messages."
+            )
         instance.delete()
 
 
@@ -163,7 +169,6 @@ class DocumentViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         case_summary_id = self.kwargs.get("case_summary_id")
-        print(case_summary_id)
 
         queryset = Document.objects.all()
 
@@ -173,12 +178,11 @@ class DocumentViewSet(viewsets.ModelViewSet):
         elif user.role == "lawyer":
             queryset = Document.objects.filter(user=user)
 
-        elif case_summary_id:
-            queryset = queryset.filter(case_summary_id=case_summary_id)
-            print(queryset)
-
         else:
             queryset = Document.objects.filter(user=user)
+
+        if case_summary_id:
+            queryset = queryset.filter(case_summary_id=case_summary_id)
 
         return queryset
 
@@ -200,11 +204,7 @@ class DocumentViewSet(viewsets.ModelViewSet):
 
     def perform_destroy(self, instance):
         print(instance.case_summary.lawyer, self.request.user)
-        if (
-            self.request.user.role != "admin"
-            and instance.case_summary.lawyer != self.request.user
-            and instance.case_summary.user != self.request.user
-        ):
+        if self.request.user.role != "admin" and instance.case_summary.lawyer != self.request.user and instance.case_summary.user != self.request.user :
             raise PermissionDenied(
                 "You do not have permission to delete this document."
             )
@@ -224,8 +224,6 @@ class CaseSummaryViewSet(viewsets.ModelViewSet):
             return CaseSummary.objects.all()
         elif user.role == "lawyer":
             return CaseSummary.objects.filter(lawyer=user)
-        elif user.role == "client":
-            return CaseSummary.objects.filter(user=user)
         else:
             return CaseSummary.objects.none()
 
@@ -235,16 +233,16 @@ class CaseSummaryViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         if (
             self.request.user.role != "admin"
-            and serializer.instance.lawyer != self.request.user
+            and serializer.instance.user != self.request.user
         ):
-            raise PermissionDenied(
+            raise permissions.PermissionDenied(
                 "You do not have permission to update this case summary."
             )
         serializer.save()
 
     def perform_destroy(self, instance):
         if self.request.user.role != "admin" and instance.user != self.request.user:
-            raise PermissionDenied(
+            raise permissions.PermissionDenied(
                 "You do not have permission to delete this case summary."
             )
         instance.delete()

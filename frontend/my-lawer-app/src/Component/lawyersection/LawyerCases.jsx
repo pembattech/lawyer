@@ -19,6 +19,7 @@ const LawyerCases = ({ lawyerId }) => {
     });
     const [editingCase, setEditingCase] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
     const token = localStorage.getItem('accessToken');
     const config = {
@@ -49,25 +50,31 @@ const LawyerCases = ({ lawyerId }) => {
         }
     }, [lawyerId]);
 
-    const handleClientCheck = async () => {
+    const handleClientCheck = async (email, isEditing = false) => {
         try {
             const res = await axios.get(
-                `http://127.0.0.1:8000/api/user-by-email/?email=${newCase.client_email}`,
+                `http://127.0.0.1:8000/api/user-by-email/?email=${email}`,
                 config
             );
             if (res.data && res.data.id) {
-                setNewCase(prev => ({ ...prev, user_id: res.data.id }));  // Ensure user_id is just the ID
+                if (isEditing) {
+                    setEditingCase(prev => ({ ...prev, user_id: res.data.id }));
+                } else {
+                    setNewCase(prev => ({ ...prev, user_id: res.data.id }));
+                }
                 setClientError('');
             } else {
-                setClientError('Client not found.');
+                throw new Error();
+            }
+        } catch {
+            setClientError('Client not found.');
+            if (isEditing) {
+                setEditingCase(prev => ({ ...prev, user_id: '' }));
+            } else {
                 setNewCase(prev => ({ ...prev, user_id: '' }));
             }
-        } catch (err) {
-            setClientError('Client not found.');
-            setNewCase(prev => ({ ...prev, user_id: '' }));
         }
     };
-
 
     const handleCreateCase = async () => {
         if (!newCase.user_id) {
@@ -81,7 +88,7 @@ const LawyerCases = ({ lawyerId }) => {
                 case_number: '',
                 case_type: '',
                 filed_date: '',
-                status: 'pending',
+                status: 'active',
                 lawyer_id: lawyerId,
                 user_id: '',
                 client_email: '',
@@ -90,8 +97,16 @@ const LawyerCases = ({ lawyerId }) => {
             setIsModalOpen(false);
         } catch (err) {
             setError('Failed to create case summary.');
-            console.error(err);
         }
+    };
+
+    const handleEditCase = (item) => {
+        setEditingCase({
+            ...item,
+            client_email: item.user.email,
+            user_id: item.user.id,
+        });
+        setIsEditModalOpen(true);
     };
 
     const handleUpdateCase = async () => {
@@ -102,10 +117,10 @@ const LawyerCases = ({ lawyerId }) => {
                 config
             );
             setEditingCase(null);
+            setIsEditModalOpen(false);
             fetchCases();
         } catch (err) {
             setError('Failed to update case summary.');
-            console.error(err);
         }
     };
 
@@ -116,31 +131,17 @@ const LawyerCases = ({ lawyerId }) => {
                 fetchCases();
             } catch (err) {
                 setError('Failed to delete case summary.');
-                console.error(err);
             }
         }
     };
 
-    const handleChange = (e) => {
+    const handleChange = (e, isEditing = false) => {
         const { name, value } = e.target;
-        if (editingCase) {
+        if (isEditing) {
             setEditingCase(prev => ({ ...prev, [name]: value }));
         } else {
             setNewCase(prev => ({ ...prev, [name]: value }));
         }
-    };
-
-    const handleEditCase = (caseData) => {
-        setEditingCase(caseData);
-        setNewCase({
-            case_number: caseData.case_number,
-            case_type: caseData.case_type,
-            filed_date: caseData.filed_date,
-            status: caseData.status,
-            lawyer_id: lawyerId,
-            user_id: caseData.user.id,
-            client_email: caseData.user.email,
-        });
     };
 
     if (loading) return <p>Loading...</p>;
@@ -186,6 +187,7 @@ const LawyerCases = ({ lawyerId }) => {
                 {selectedCaseId && <LawyerCaseUpdate caseId={selectedCaseId} />}
             </div>
 
+            {/* Create Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-10">
                     <div className="bg-white p-6 rounded shadow-lg w-1/3">
@@ -206,8 +208,8 @@ const LawyerCases = ({ lawyerId }) => {
                             placeholder="Enter Client Email"
                             value={newCase.client_email}
                             onChange={handleChange}
-                            onBlur={handleClientCheck}
-                            onKeyDown={(e) => e.key === 'Enter' && handleClientCheck()}
+                            onBlur={() => handleClientCheck(newCase.client_email)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleClientCheck(newCase.client_email)}
                             className="border p-2 mb-2 w-full"
                         />
                         {clientError && <p className="text-red-600 text-sm mb-2">{clientError}</p>}
@@ -215,6 +217,41 @@ const LawyerCases = ({ lawyerId }) => {
                         <div className="flex justify-between">
                             <button onClick={handleCreateCase} className="bg-blue-500 text-white p-2 rounded">Create Case</button>
                             <button onClick={() => setIsModalOpen(false)} className="bg-red-500 text-white p-2 rounded">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Modal */}
+            {isEditModalOpen && editingCase && (
+                <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-10">
+                    <div className="bg-white p-6 rounded shadow-lg w-1/3">
+                        <h3 className="text-xl font-semibold mb-4">Edit Case</h3>
+                        <input type="text" name="case_number" placeholder="Case Number" value={editingCase.case_number} onChange={(e) => handleChange(e, true)} className="border p-2 mb-2 w-full" />
+                        <input type="text" name="case_type" placeholder="Case Type" value={editingCase.case_type} onChange={(e) => handleChange(e, true)} className="border p-2 mb-2 w-full" />
+                        <input type="date" name="filed_date" value={editingCase.filed_date} onChange={(e) => handleChange(e, true)} className="border p-2 mb-2 w-full" />
+                        <select name="status" value={editingCase.status} onChange={(e) => handleChange(e, true)} className="border p-2 mb-2 w-full">
+                            <option value="active">Active</option>
+                            <option value="closed">Closed</option>
+                            <option value="settled">Settled</option>
+                            <option value="pending">Pending</option>
+                        </select>
+
+                        <input
+                            type="email"
+                            name="client_email"
+                            placeholder="Enter Client Email"
+                            value={editingCase.client_email}
+                            onChange={(e) => handleChange(e, true)}
+                            onBlur={() => handleClientCheck(editingCase.client_email, true)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleClientCheck(editingCase.client_email, true)}
+                            className="border p-2 mb-2 w-full"
+                        />
+                        {clientError && <p className="text-red-600 text-sm mb-2">{clientError}</p>}
+
+                        <div className="flex justify-between">
+                            <button onClick={handleUpdateCase} className="bg-green-600 text-white p-2 rounded">Update</button>
+                            <button onClick={() => setIsEditModalOpen(false)} className="bg-red-500 text-white p-2 rounded">Cancel</button>
                         </div>
                     </div>
                 </div>
