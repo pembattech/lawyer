@@ -13,6 +13,7 @@ import AdminDashboard from './Component/admin/AdminDashboard';
 import AdminAppointment from './Component/admin/AdminAppointment';
 import AdminContactMessage from './Component/admin/AdminContactMessage';
 import AdminCaseSummary from './Component/admin/AdminCaseSummary';
+import AdminUserList from './Component/admin/AdminUserList';
 import LawyerDashboard from './Component/lawyersection/LawyerDashboard';
 import LawyerCases from './Component/lawyersection/LawyerCases';
 import LawyerAppointments from './Component/lawyersection/LawyerAppointments';
@@ -43,6 +44,7 @@ function App() {
           <Route path='/admin/appointment' element={<AdminAppointment />} />
           <Route path="/admin/contact-message" element={<AdminContactMessage />} />
           <Route path="/admin/case" element={<AdminCaseSummary />} />
+          <Route path="/admin/user" element={<AdminUserList />} />
 
           <Route path="/lawyerdashboard" element={<LawyerDashboard />} />
           <Route path="/lawyer-cases" element={<LawyerCases />} />

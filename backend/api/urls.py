@@ -11,7 +11,8 @@ from .views import (
     CaseUpdateViewSet,
     CaseSummaryViewSet,
     LawyerListAPIView,
-    UserByEmailView
+    UserByEmailView,
+    UserRoleUpdateViewSet,
 )
 
 
@@ -23,7 +24,7 @@ router.register(r'case-summaries', CaseSummaryViewSet, basename='case-summary')
 router.register(r'contact-messages', ContactMessageViewSet, basename='contact-message')
 router.register(r'case-summary/(?P<case_summary_id>\d+)/updates', CaseUpdateViewSet, basename='case-update-for-case-summary')
 router.register(r'case-summary/(?P<case_summary_id>\d+)/documents', DocumentViewSet, basename='case-document-for-case-summary')
-router.register(r'user-role', UserViewSet, basename='user-role')
+router.register(r'update-role', UserRoleUpdateViewSet, basename='update-role')
 
 
 urlpatterns = [

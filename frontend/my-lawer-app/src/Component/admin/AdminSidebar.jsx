@@ -1,8 +1,10 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authService } from "./../../api";
+import useAuthRedirect from './../hook/useAuthRedirect';
 
 const Sidebar = () => {
+    useAuthRedirect();
     const navigate = useNavigate();
 
     const handleLogout = () => {
@@ -17,6 +19,7 @@ const Sidebar = () => {
                 <Link to="/admin/case" className="block hover:bg-gray-700 p-2 rounded">Case Updates</Link>
                 <Link to="/admin/appointment" className="block hover:bg-gray-700 p-2 rounded">Appointments</Link>
                 <Link to="/admin/contact-message" className="block hover:bg-gray-700 p-2 rounded">Contacts</Link>
+                <Link to="/admin/user" className="block hover:bg-gray-700 p-2 rounded">Users</Link>
             </nav>
             <div className="p-6">
                 <button

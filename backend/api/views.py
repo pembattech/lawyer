@@ -60,6 +60,14 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
             return self.queryset.filter(role=role)
         return self.queryset
 
+    def partial_update(self):
+        user = self.get_object()
+        if "role" in self.request.data:
+            user.role = self.request.data["role"]
+            user.save()
+            return Response({"detail": "User role updated successfully."})
+        return super().partial_update(request, *args, **kwargs)
+
 
 # ---------------------------
 # Appointment ViewSet
@@ -337,3 +345,31 @@ class UserByEmailView(APIView):
             return Response(
                 {"error": "User not found."}, status=status.HTTP_404_NOT_FOUND
             )
+
+
+class UserRoleUpdateViewSet(viewsets.ViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def list(self, request):
+        users = User.objects.exclude(role='admin')  # exclude admin users
+        serializer = UserSerializer(users, many=True)
+        return Response(serializer.data)
+
+    def partial_update(self, request, pk=None):
+        try:
+            user = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            return Response(
+                {"error": "User not found."}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        new_role = request.data.get("role")
+        if new_role not in dict(User.ROLE_CHOICES).keys():
+            return Response(
+                {"error": "Invalid role."}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+        user.role = new_role
+        user.save()
+        return Response({"message": f"Role updated to {new_role}."})
