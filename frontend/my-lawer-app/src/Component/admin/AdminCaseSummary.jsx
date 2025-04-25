@@ -193,7 +193,7 @@ const AdminCaseSummary = () => {
                     )}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="space-y-4">
+                        <div className="space-y-4 max-h-[465px] overflow-y-auto pr-2">
                             <h2 className="text-xl font-semibold mb-4">Case Summaries</h2>
                             <ul>
                                 {caseSummaries.map(caseSummary => (
@@ -204,9 +204,7 @@ const AdminCaseSummary = () => {
                                         }`}
                                         onClick={() => toggleCaseUpdates(caseSummary.id)}
                                     >
-                                        <div
-                                            className="flex-1"
-                                        >
+                                        <div className="flex-1">
                                             <p className="font-medium">
                                                 {caseSummary.case_number} - {caseSummary.case_type}
                                             </p>
@@ -231,7 +229,7 @@ const AdminCaseSummary = () => {
                             </ul>
                         </div>
 
-                        <div className="space-y-4">
+                        <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
                             <h2 className="text-xl font-semibold mb-4">Case Updates</h2>
                             {selectedCaseId ? (
                                 <AdminCaseUpdates caseSummaryId={selectedCaseId} />

@@ -73,8 +73,7 @@ const AdminCaseUpdates = ({ caseSummaryId }) => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-4 bg-white rounded shadow">
-      <h2 className="text-2xl font-semibold mb-4">Case Updates</h2>
+    <div className="max-w-3xl mx-auto p-4 bg-white rounded shadow max-h-[418px] overflow-y-auto">
 
       <button
         className="mb-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"

@@ -1,14 +1,13 @@
 import React from 'react';
-import { Link, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Sidebar from './AdminSidebar';
+import { Outlet } from 'react-router-dom';
 
 const AdminLayout = () => {
-
     return (
-        <div className="flex">
+        <div className="flex min-h-screen">
             <Sidebar />
-            <main className="flex-1 p-4 bg-gray-100 min-h-screen">
-            <p>Welcome to the Admin Dashboard</p>
+            <main className="flex-1 p-6 bg-gray-100">
+                <Outlet /> {/* Nested routes will render here */}
             </main>
         </div>
     );
