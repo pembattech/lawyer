@@ -80,6 +80,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
             "preferred_date",
             "preferred_time",
             "description",
+            "isseen",
             "created_at",
         ]
         read_only_fields = ["created_at"]

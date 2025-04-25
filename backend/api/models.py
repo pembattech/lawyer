@@ -53,6 +53,7 @@ class Appointment(models.Model):
     preferred_date = models.DateField()
     preferred_time = models.TimeField()
     description = models.TextField(blank=True, null=True)
+    isseen = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

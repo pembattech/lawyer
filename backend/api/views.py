@@ -81,7 +81,8 @@ class AppointmentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = Appointment.objects.all()
+        queryset = Appointment.objects.all().order_by('-created_at') 
+        
 
         # Allow filtering by lawyer ID from query params
         lawyer_id = self.request.query_params.get("lawyer")
@@ -107,7 +108,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         if (
             self.request.user.role != "admin"
-            and serializer.instance.user != self.request.user
+            and serializer.instance.lawyer != self.request.user
         ):
             raise permissions.PermissionDenied(
                 "You do not have permission to update this appointment."
