@@ -171,19 +171,11 @@ class DocumentViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         case_summary_id = self.kwargs.get("case_summary_id")
-        print(case_summary_id)
 
         queryset = Document.objects.all()
 
-        if user.role == "admin":
-            queryset = Document.objects.all()
-
-        # elif user.role == "lawyer":
-        #     queryset = Document.objects.filter(user=user)
-
-        elif case_summary_id:
+        if case_summary_id:
             queryset = queryset.filter(case_summary_id=case_summary_id)
-            print(queryset)
 
         else:
             queryset = Document.objects.filter(user=user)

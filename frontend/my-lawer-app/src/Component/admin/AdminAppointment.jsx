@@ -156,12 +156,12 @@ const AdminAppointment = () => {
                 <div className="p-4">
                     <h1 className="text-3xl font-bold mb-6 text-center text-indigo-600">Appointment</h1>
 
-                    <button
+                    {/* <button
                         onClick={() => setShowModal(true)}
                         className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition duration-200 mb-6"
                     >
                         Create Appointment
-                    </button>
+                    </button> */}
 
                     {/* Modal for creating/editing appointment */}
                     {showModal && (
