@@ -49,6 +49,18 @@ class UserDetailView(generics.RetrieveAPIView):
         return self.request.user
 
 
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        role = self.request.query_params.get("role")
+        if role:
+            return self.queryset.filter(role=role)
+        return self.queryset
+
+
 # ---------------------------
 # Appointment ViewSet
 # ---------------------------
@@ -66,12 +78,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             return [permissions.AllowAny()]
         return [permissions.IsAuthenticated()]
 
-    # def get_queryset(self):
-    #     user = self.request.user
-    #     if user.role == "admin":
-    #         return Appointment.objects.all()
-    #     return Appointment.objects.filter(user=user)
-    
+
     def get_queryset(self):
         user = self.request.user
         queryset = Appointment.objects.all()
@@ -79,14 +86,17 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         # Allow filtering by lawyer ID from query params
         lawyer_id = self.request.query_params.get("lawyer")
         if lawyer_id:
-            queryset = queryset.filter(lawyer_id=lawyer_id)  # Correctly filter by lawyer_id
+            queryset = queryset.filter(
+                lawyer_id=lawyer_id
+            )  # Correctly filter by lawyer_id
 
         # Limit non-admins to only their appointments
         if not user.is_authenticated or user.role != "admin":
-            queryset = queryset.filter(lawyer=user)  # For authenticated users (non-admin), filter by lawyer (user)
+            queryset = queryset.filter(
+                lawyer=user
+            )  # For authenticated users (non-admin), filter by lawyer (user)
 
         return queryset
-
 
     def perform_create(self, serializer):
         if self.request.user.is_authenticated:
@@ -192,7 +202,8 @@ class DocumentViewSet(viewsets.ModelViewSet):
         serializer.save()
 
     def perform_destroy(self, instance):
-        if self.request.user.role != "admin" and instance.user != self.request.user:
+        print(instance.case_summary.lawyer, self.request.user)
+        if self.request.user.role != "admin" and instance.case_summary.lawyer != self.request.user and instance.case_summary.user != self.request.user :
             raise PermissionDenied(
                 "You do not have permission to delete this document."
             )
@@ -216,7 +227,7 @@ class CaseSummaryViewSet(viewsets.ModelViewSet):
             return CaseSummary.objects.none()
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        serializer.save()
 
     def perform_update(self, serializer):
         if (
@@ -247,23 +258,27 @@ class CaseUpdateViewSet(viewsets.ModelViewSet):
         user = self.request.user
         case_summary_id = self.kwargs.get("case_summary_id")
 
+        queryset = CaseUpdate.objects.all()
         if case_summary_id:
-
-            queryset = CaseUpdate.objects.filter(case_summary_id=case_summary_id)
-        else:
-
-            queryset = CaseUpdate.objects.all()
+            queryset = queryset.filter(case_summary_id=case_summary_id)
 
         if user.role == "admin":
             return queryset
 
-        return queryset.filter(case_summary__user=user)
+        elif user.role == "lawyer":
+            return queryset.filter(case_summary__lawyer=user)
+
+        elif user.role == "client":
+            return queryset.filter(case_summary__user=user)
+
+        # Default to empty queryset for unknown roles
+        return CaseUpdate.objects.none()
 
     def perform_create(self, serializer):
 
         if (
             self.request.user.role != "admin"
-            and serializer.validated_data["case_summary"].user != self.request.user
+            and serializer.validated_data["case_summary"].lawyer != self.request.user
         ):
             raise PermissionDenied(
                 "You do not have permission to add updates to this case."
@@ -274,7 +289,7 @@ class CaseUpdateViewSet(viewsets.ModelViewSet):
 
         if (
             self.request.user.role != "admin"
-            and serializer.instance.case_summary.user != self.request.user
+            and serializer.instance.case_summary.lawyer != self.request.user
         ):
             raise PermissionDenied(
                 "You do not have permission to update this case update."
@@ -285,7 +300,7 @@ class CaseUpdateViewSet(viewsets.ModelViewSet):
 
         if (
             self.request.user.role != "admin"
-            and instance.case_summary.user != self.request.user
+            and instance.case_summary.lawyer != self.request.user
         ):
             raise PermissionDenied(
                 "You do not have permission to delete this case update."
@@ -300,3 +315,22 @@ class LawyerListAPIView(APIView):
         lawyers = User.objects.filter(role="lawyer")
         serializer = LawyerSerializer(lawyers, many=True)
         return Response(serializer.data)
+
+
+class UserByEmailView(APIView):
+    def get(self, request):
+        email = request.query_params.get("email")
+
+        if not email:
+            return Response(
+                {"error": "Email is required."}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            user = User.objects.get(email=email)
+            serializer = UserSerializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response(
+                {"error": "User not found."}, status=status.HTTP_404_NOT_FOUND
+            )

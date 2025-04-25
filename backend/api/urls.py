@@ -4,12 +4,14 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .views import (
     RegisterView,
     UserDetailView,
+    UserViewSet,
     AppointmentViewSet,
     ContactMessageViewSet,
     DocumentViewSet,
     CaseUpdateViewSet,
     CaseSummaryViewSet,
-    LawyerListAPIView
+    LawyerListAPIView,
+    UserByEmailView
 )
 
 
@@ -21,6 +23,7 @@ router.register(r'case-summaries', CaseSummaryViewSet, basename='case-summary')
 router.register(r'contact-messages', ContactMessageViewSet, basename='contact-message')
 router.register(r'case-summary/(?P<case_summary_id>\d+)/updates', CaseUpdateViewSet, basename='case-update-for-case-summary')
 router.register(r'case-summary/(?P<case_summary_id>\d+)/documents', DocumentViewSet, basename='case-document-for-case-summary')
+router.register(r'user-role', UserViewSet, basename='user-role')
 
 
 urlpatterns = [
@@ -29,6 +32,7 @@ urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),  
     path('user/', UserDetailView.as_view(), name='user_detail'),  
     path('lawyers/', LawyerListAPIView.as_view(), name='lawyer-list'),
+     path('user-by-email/', UserByEmailView.as_view(), name='user-by-email'),
 
     
     path('', include(router.urls)),
