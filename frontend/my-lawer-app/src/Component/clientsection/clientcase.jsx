@@ -1,18 +1,23 @@
 import React, { useEffect, useState } from "react";
 import CaseDocumentsModal from "./CaseDocumentModal";
 import Sidebar from './client-sidebar';
+import useAuthRedirect from './../hook/useAuthRedirect';
 
 // Modal Component for Viewing Case Updates
 const CaseUpdatesModal = ({ caseId, closeModal, openDocumentsModal }) => {
     const [caseUpdates, setCaseUpdates] = useState([]);
     const [selectedUpdate, setSelectedUpdate] = useState(null);
 
+
     useEffect(() => {
+        useAuthRedirect();
+
         const fetchCaseUpdates = async () => {
             const token = localStorage.getItem("accessToken");
 
             if (!token) {
                 console.error("Access token not found");
+                navigate('/login'); // Navigate to login
                 return;
             }
 

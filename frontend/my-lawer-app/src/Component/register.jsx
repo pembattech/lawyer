@@ -1,5 +1,5 @@
-// RegisterPage.jsx
 import React, { useState } from 'react';
+import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authService } from '../api';
 import Header from './Header';
@@ -8,6 +8,47 @@ import Footer from './Footer';
 const RegisterPage = () => {
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const checkLoggedIn = async () => {
+      const accessToken = localStorage.getItem('accessToken');
+      if (!accessToken) return; // No token, allow to show login page
+
+      try {
+        const userResponse = await fetch('http://127.0.0.1:8000/api/user', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+
+        if (!userResponse.ok) {
+          throw new Error('Invalid token');
+        }
+
+        const user = await userResponse.json();
+        const role = user.role;
+
+        // Redirect based on role
+        if (role === 'lawyer') {
+          navigate('/lawyerdashboard');
+        } else if (role === 'client') {
+          navigate('/clientdashboard');
+        } else if (role === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
+
+      } catch (error) {
+        console.log('Token is invalid or user not found:', error);
+        // Stay on login page if token is invalid
+      }
+    };
+
+    checkLoggedIn();
+  }, [navigate]);
+
+  
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',

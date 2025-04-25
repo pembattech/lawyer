@@ -1,7 +1,10 @@
 import React from 'react';
 import { FileBarChart, MessageSquare, Home, User, LogOut } from 'lucide-react'; // Import necessary icons
+import useAuthRedirect from './../hook/useAuthRedirect';
+
 
 const Sidebar = () => {
+        useAuthRedirect();
     const handleLogout = () => {
         localStorage.removeItem('accessToken');
         window.location.href = '/login'; // Redirect to login page after logout
@@ -15,7 +18,7 @@ const Sidebar = () => {
             </div>
             <ul className="space-y-6">
                 <li>
-                    <a href="/cdashboard" className="flex items-center text-white hover:text-blue-500">
+                    <a href="/clientdashboard" className="flex items-center text-white hover:text-blue-500">
                         <FileBarChart className="h-5 w-5 mr-3" />
                         Dashboard
                     </a>

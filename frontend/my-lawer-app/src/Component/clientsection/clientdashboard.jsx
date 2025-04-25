@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { FileBarChart, MessageSquare, Home, User, LogOut } from 'lucide-react'; // Assuming you are using lucide-react icons
 import Sidebar from './client-sidebar';
+import useAuthRedirect from './../hook/useAuthRedirect';
+
+
 
 const formatDate = (isoDate) => {
     const date = new Date(isoDate);
@@ -40,6 +43,7 @@ const fetchCaseSummaries = async () => {
 };
 
 const Dashboard = () => {
+    useAuthRedirect();
     const [caseUpdates, setCaseUpdates] = useState([]);
     const [loading, setLoading] = useState(true);
 

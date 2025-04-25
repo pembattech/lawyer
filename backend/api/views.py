@@ -170,8 +170,8 @@ class DocumentViewSet(viewsets.ModelViewSet):
         if user.role == "admin":
             queryset = Document.objects.all()
 
-        elif user.role == "lawyer":
-            queryset = Document.objects.filter(user=user)
+        # elif user.role == "lawyer":
+        #     queryset = Document.objects.filter(user=user)
 
         elif case_summary_id:
             queryset = queryset.filter(case_summary_id=case_summary_id)

@@ -3,8 +3,10 @@ import LawyerCases from './LawyerCases';
 import LawyerAppointments from './LawyerAppointments';
 import { authService } from "./../../api";
 import { Link, useNavigate } from 'react-router-dom';
+import useAuthRedirect from './../hook/useAuthRedirect';
 
 const LawyerDashboard = () => {
+    useAuthRedirect();
     const [user, setUser] = useState(null);
     const navigate = useNavigate();
 
