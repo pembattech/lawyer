@@ -1,10 +1,11 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 
+
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
-            raise ValueError('The Email field must be set')
+            raise ValueError("The Email field must be set")
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
@@ -12,16 +13,28 @@ class UserManager(BaseUserManager):
         return user
 
     def create_superuser(self, email, password=None, **extra_fields):
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
-        extra_fields.setdefault('role', 'admin')
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+        extra_fields.setdefault("role", "admin")
         return self.create_user(email, password, **extra_fields)
+
 
 class User(AbstractUser):
     ROLE_CHOICES = [
-        ('admin', 'Admin'),
-        ('lawyer', 'Lawyer'),
-        ('client', 'Client'),
+        ("admin", "Admin"),
+        ("lawyer", "Lawyer"),
+        ("client", "Client"),
+    ]
+
+    LAWYER_TYPE_CHOICES = [
+        ("criminal", "Criminal Lawyer"),
+        ("estate_planning", "Estate Planning Lawyer"),
+        ("tax", "Tax Lawyer"),
+        ("personal_injury", "Personal Injury Lawyer"),
+        ("corporate", "Corporate Lawyer"),
+        ("business", "Business Lawyer"),
+        ("intellectual_property", "Intellectual Property Lawyer"),
+        ("family", "Family Lawyer"),
     ]
 
     email = models.EmailField(unique=True)
@@ -32,20 +45,41 @@ class User(AbstractUser):
     sex = models.CharField(max_length=20, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
     phone_number = models.CharField(max_length=20, blank=True)
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='client')
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="client")
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
+    # New field here:
+    lawyer_type = models.CharField(
+        max_length=50,
+        choices=LAWYER_TYPE_CHOICES,
+        blank=True,
+        null=True,
+        help_text="Specify the type of lawyer if the role is 'lawyer'.",
+    )
+
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["username", "first_name", "last_name"]
 
     objects = UserManager()
 
     def __str__(self):
         return f"{self.email} ({self.role})"
 
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        if self.role == "lawyer" and not self.lawyer_type:
+            raise ValidationError("Lawyer type must be set when role is lawyer.")
+
+        if self.role != "lawyer" and self.lawyer_type:
+            raise ValidationError(
+                "Lawyer type should not be set unless role is lawyer."
+            )
 
 
 class Appointment(models.Model):
-    lawyer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='appointments')
+    lawyer = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="appointments"
+    )
     name = models.CharField(max_length=255)
     email = models.EmailField()
     phone = models.CharField(max_length=20)
@@ -59,6 +93,7 @@ class Appointment(models.Model):
     def __str__(self):
         return f"{self.name} - {self.service_needed}"
 
+
 class ContactMessage(models.Model):
     name = models.CharField(max_length=255)
     email = models.EmailField()
@@ -69,55 +104,71 @@ class ContactMessage(models.Model):
     def __str__(self):
         return f"{self.name} - {self.email}"
 
+
 # Case Summary Model
 class CaseSummary(models.Model):
-    case_number = models.CharField(max_length=50, unique=True)  # Case number like "LF-2025-0342"
+    case_number = models.CharField(
+        max_length=50, unique=True
+    )  # Case number like "LF-2025-0342"
     case_type = models.CharField(max_length=100)  # e.g., "Personal Injury"
     filed_date = models.DateField()  # The date the case was filed
     status = models.CharField(
-        max_length=50, 
+        max_length=50,
         choices=[
-            ('active', 'Active'),
-            ('closed', 'Closed'),
-            ('settled', 'Settled'),
-            ('pending', 'Pending'),
-        ], 
-        default='active'  # The status of the case
+            ("active", "Active"),
+            ("closed", "Closed"),
+            ("settled", "Settled"),
+            ("pending", "Pending"),
+        ],
+        default="active",  # The status of the case
     )
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='filed_cases')  # Who filed the case
-    lawyer = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='lawyer_cases')  # Lawyer handling the case
-
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="filed_cases"
+    )  # Who filed the case
+    lawyer = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="lawyer_cases",
+    )  # Lawyer handling the case
 
     def __str__(self):
         return f"Case {self.case_number} - {self.case_type}"
+
 
 # Case Update Model
 class CaseUpdate(models.Model):
     case_summary = models.ForeignKey(
         CaseSummary,
         on_delete=models.CASCADE,
-        related_name='updates'  # Added related_name here
+        related_name="updates",  # Added related_name here
     )
     title = models.CharField(max_length=255)  # Title of the case update
     details = models.TextField()  # Details of the case update
-    updated_at = models.DateTimeField(auto_now=True)  # Auto timestamp of when the case update was made
+    updated_at = models.DateTimeField(
+        auto_now=True
+    )  # Auto timestamp of when the case update was made
 
     def __str__(self):
         return self.title
 
+
 class Document(models.Model):
     NAME_CHOICES = [
-        ('Medical Records', 'Medical Records'),
-        ('Employment Records', 'Employment Records'),
-        ('Insurance Information', 'Insurance Information'),
-        ('Signed Affidavit', 'Signed Affidavit'),
-        ('Photo Evidence', 'Photo Evidence'),
+        ("Medical Records", "Medical Records"),
+        ("Employment Records", "Employment Records"),
+        ("Insurance Information", "Insurance Information"),
+        ("Signed Affidavit", "Signed Affidavit"),
+        ("Photo Evidence", "Photo Evidence"),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    case_summary = models.ForeignKey(CaseSummary, on_delete=models.CASCADE, related_name='documents')
+    case_summary = models.ForeignKey(
+        CaseSummary, on_delete=models.CASCADE, related_name="documents"
+    )
     name = models.CharField(max_length=255, choices=NAME_CHOICES)
-    file = models.FileField(upload_to='documents/')
+    file = models.FileField(upload_to="documents/")
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

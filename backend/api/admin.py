@@ -7,7 +7,7 @@ from django.utils.html import format_html
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
     model = User
-    list_display = ('email', 'username', 'first_name', 'last_name', 'role', 'is_staff')
+    list_display = ('email', 'username', 'first_name', 'last_name', 'role', 'lawyer_type', 'is_staff')
     search_fields = ('email', 'username', 'first_name', 'last_name')
     ordering = ('email',)
 
@@ -20,6 +20,7 @@ class UserAdmin(BaseUserAdmin):
                 'date_of_birth',
                 'phone_number',
                 'role',
+                'lawyer_type',
             )
         }),
     )
@@ -34,6 +35,7 @@ class UserAdmin(BaseUserAdmin):
                 'date_of_birth',
                 'phone_number',
                 'role',
+                'lawyer_type',
             ),
         }),
     )

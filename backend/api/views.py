@@ -343,7 +343,7 @@ class UserRoleUpdateViewSet(viewsets.ViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def list(self, request):
-        users = User.objects.exclude(role='admin')  # exclude admin users
+        users = User.objects.exclude(role="admin")  # exclude admin users
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data)
 
@@ -361,7 +361,35 @@ class UserRoleUpdateViewSet(viewsets.ViewSet):
                 {"error": "Invalid role."}, status=status.HTTP_400_BAD_REQUEST
             )
 
-
         user.role = new_role
         user.save()
         return Response({"message": f"Role updated to {new_role}."})
+
+
+class UserLawyerTypeUpdateViewSet(viewsets.ViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def partial_update(self, request, pk=None):
+        try:
+            user = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            return Response(
+                {"error": "User not found."}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Only allow update if the user is a lawyer
+        if user.role != "lawyer":
+            return Response(
+                {"error": "Lawyer type can only be set for users with role 'lawyer'."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        new_lawyer_type = request.data.get("lawyer_type")
+        if new_lawyer_type not in dict(User.LAWYER_TYPE_CHOICES).keys():
+            return Response(
+                {"error": "Invalid lawyer type."}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        user.lawyer_type = new_lawyer_type
+        user.save()
+        return Response({"message": f"Lawyer type updated to {new_lawyer_type}."})

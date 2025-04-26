@@ -22,6 +22,7 @@ class UserSerializer(serializers.ModelSerializer):
             "sex",
             "date_joined",
             "role",
+            "lawyer_type",
         )
 
 
