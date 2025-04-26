@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import CaseDocumentsModal from "./CaseDocumentModal";
 import Sidebar from './client-sidebar';
-import useAuthRedirect from './../hook/useAuthRedirect';
 
 // Modal Component for Viewing Case Updates
 const CaseUpdatesModal = ({ caseId, closeModal, openDocumentsModal }) => {
@@ -10,7 +9,6 @@ const CaseUpdatesModal = ({ caseId, closeModal, openDocumentsModal }) => {
 
 
     useEffect(() => {
-        useAuthRedirect();
 
         const fetchCaseUpdates = async () => {
             const token = localStorage.getItem("accessToken");
