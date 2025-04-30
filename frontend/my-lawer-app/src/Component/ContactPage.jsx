@@ -27,7 +27,7 @@ const ContactPage = () => {
     if (!formData.name) newErrors.name = 'Name is required.';
     if (!formData.email) newErrors.email = 'Email is required.';
     if (!formData.phone) newErrors.phone = 'Phone number is required.';
-    if (!formData.message) newErrors.message = 'Message is required.';
+    if (!formData.message) newErrors.message = '2Message is required.';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -42,7 +42,7 @@ const ContactPage = () => {
     setLoading(true);
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/contact/", {
+      const res = await fetch("http://127.0.0.1:8000/api/contact-messages/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
