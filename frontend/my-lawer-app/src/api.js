@@ -114,21 +114,21 @@ export const authService = {
   // Logout functionality
   logout: async () => {
     try {
-      const response = await fetch(AUTH_API.LOGOUT, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-      });
+      // const response = await fetch(AUTH_API.LOGOUT, {
+      //   method: 'POST',
+      //   headers: getAuthHeaders(),
+      // });
 
       // Clear local storage regardless of API call success
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
 
-      if (response.ok) {
-        return { success: true, message: 'Logout successful' };
-      } else {
-        const error = await response.json();
-        return { success: false, message: error.detail || 'Logout API call failed' };
-      }
+      // if (response.ok) {
+      return { success: true, message: 'Logout successful' };
+      // } else {
+      //   const error = await response.json();
+      //   return { success: false, message: error.detail || 'Logout API call failed' };
+      // }
     } catch (error) {
       // Clear tokens on error and return failure response
       localStorage.removeItem('accessToken');

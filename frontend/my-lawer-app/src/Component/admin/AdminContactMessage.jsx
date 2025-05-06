@@ -38,7 +38,8 @@ const AdminContactMessage = () => {
     const fetchMessages = async () => {
         try {
             const response = await axios.get('/api/contact-messages/');
-            setMessages(response.data);
+            const sortedMessages = response.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            setMessages(sortedMessages);
         } catch (error) {
             console.error('Error fetching messages:', error);
         }
@@ -122,12 +123,12 @@ const AdminContactMessage = () => {
                 <div className="p-4">
                     <h1 className="text-3xl font-bold mb-6 text-center text-indigo-600">Contact Messages</h1>
 
-                    <button
+                    {/* <button
                         onClick={() => setShowModal(true)}
                         className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition duration-200 mb-6"
                     >
                         Create Contact Message
-                    </button>
+                    </button> */}
 
                     {/* Modal for creating/editing contact message */}
                     {showModal && (
@@ -188,9 +189,9 @@ const AdminContactMessage = () => {
                         </form>
                     )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-[80vh]">
                         {/* Left Column - Contact message list */}
-                        <div className="space-y-4">
+                        <div className="space-y-4 overflow-y-auto pr-2">
                             <h2 className="text-xl font-semibold mb-4">Messages</h2>
                             <ul>
                                 {messages.map(message => (
@@ -226,7 +227,7 @@ const AdminContactMessage = () => {
                         </div>
 
                         {/* Right Column - Detailed information */}
-                        <div className="bg-white p-6 shadow-lg rounded">
+                        <div className="bg-white p-6 shadow-lg rounded overflow-y-auto">
                             {detailId ? (
                                 <>
                                     <h3 className="text-xl font-semibold mb-4">Message Details</h3>

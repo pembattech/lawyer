@@ -2,9 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 import Sidebar from './AdminSidebar';
-
 import useAuthRedirect from './../hook/useAuthRedirect';
-
 
 axios.defaults.baseURL = 'http://127.0.0.1:8000';
 
@@ -24,14 +22,16 @@ const AdminAppointment = () => {
 
     const [appointments, setAppointments] = useState([]);
     const [formData, setFormData] = useState({
+        lawyer: '',
         name: '',
         email: '',
         phone: '',
-        service: '',
-        date: '',
-        time: '',
-        message: '',
+        service_needed: '',
+        preferred_date: '',
+        preferred_time: '',
+        description: '',
     });
+
     const [editingId, setEditingId] = useState(null);
     const [detailId, setDetailId] = useState(null);
     const [showModal, setShowModal] = useState(false);
@@ -50,50 +50,27 @@ const AdminAppointment = () => {
     };
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
-    };
-
-    const convertTo12Hour = (time24) => {
-        if (!time24) return '';
-        const [hour, minute] = time24.split(':');
-        let hourNum = parseInt(hour);
-        const ampm = hourNum >= 12 ? 'PM' : 'AM';
-        hourNum = hourNum % 12 || 12;
-        return `${hourNum}:${minute} ${ampm}`;
-    };
-
-    const convertTo24Hour = (time12) => {
-        if (!time12) return '';
-        const [time, ampm] = time12.split(' ');
-        let [hour, minute] = time.split(':');
-        hour = parseInt(hour);
-        if (ampm === 'PM' && hour !== 12) hour += 12;
-        if (ampm === 'AM' && hour === 12) hour = 0;
-        return `${hour}:${minute}`;
+        const { name, value, type, checked } = e.target;
+        const newValue = type === 'checkbox' ? checked : value;
+        setFormData(prev => ({ ...prev, [name]: newValue }));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const convertedTime = formData.time ? convertTo12Hour(formData.time) : '';
-        const payload = {
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone,
-            service: formData.service,
-            date: formData.date,
-            time: convertedTime,
-            message: formData.message,
-        };
+        const payload = { ...formData };
 
         const method = editingId ? 'put' : 'post';
-        const url = editingId ? `/api/appointments/${editingId}/` : '/api/appointments/';
+        const url = editingId
+            ? `/api/appointments/${editingId}/`
+            : '/api/appointments/';
 
         try {
             const response = await axios[method](url, payload);
             if (editingId) {
-                setAppointments(prev => prev.map(a => (a.id === editingId ? response.data : a)));
+                setAppointments(prev =>
+                    prev.map(a => (a.id === editingId ? response.data : a))
+                );
             } else {
                 setAppointments(prev => [...prev, response.data]);
             }
@@ -108,13 +85,14 @@ const AdminAppointment = () => {
         if (appointment) {
             setEditingId(id);
             setFormData({
+                lawyer: appointment.lawyer || '',
                 name: appointment.name || '',
                 email: appointment.email || '',
                 phone: appointment.phone || '',
-                service: appointment.service_needed || '',
-                date: appointment.preferred_date || '',
-                time: convertTo24Hour(appointment.preferred_time) || '',
-                message: appointment.description || '',
+                service_needed: appointment.service_needed || '',
+                preferred_date: appointment.preferred_date || '',
+                preferred_time: appointment.preferred_time || '',
+                description: appointment.description || '',
             });
             setShowModal(true);
         }
@@ -137,13 +115,15 @@ const AdminAppointment = () => {
 
     const resetForm = () => {
         setFormData({
+            lawyer: '',
             name: '',
             email: '',
             phone: '',
-            service: '',
-            date: '',
-            time: '',
-            message: '',
+            service_needed: '',
+            preferred_date: '',
+            preferred_time: '',
+            description: '',
+
         });
         setEditingId(null);
         setShowModal(false);
@@ -154,19 +134,20 @@ const AdminAppointment = () => {
             <Sidebar />
             <main className="flex-1 p-4 bg-gray-100 min-h-screen">
                 <div className="p-4">
-                    <h1 className="text-3xl font-bold mb-6 text-center text-indigo-600">Appointment</h1>
+                    <h1 className="text-3xl font-bold mb-6 text-center text-indigo-600">Appointments</h1>
 
-                    {/* <button
-                        onClick={() => setShowModal(true)}
-                        className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition duration-200 mb-6"
-                    >
-                        Create Appointment
-                    </button> */}
-
-                    {/* Modal for creating/editing appointment */}
                     {showModal && (
                         <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6 space-y-4 mb-10">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <input
+                                    type="text"
+                                    name="lawyer"
+                                    value={formData.lawyer}
+                                    onChange={handleChange}
+                                    readOnly
+                                    placeholder="Lawyer ID or Name"
+                                    className="border rounded p-2 w-full"
+                                />
                                 <input
                                     type="text"
                                     name="name"
@@ -196,8 +177,8 @@ const AdminAppointment = () => {
                                 />
                                 <input
                                     type="text"
-                                    name="service"
-                                    value={formData.service}
+                                    name="service_needed"
+                                    value={formData.service_needed}
                                     onChange={handleChange}
                                     placeholder="Service Needed"
                                     required
@@ -205,16 +186,16 @@ const AdminAppointment = () => {
                                 />
                                 <input
                                     type="date"
-                                    name="date"
-                                    value={formData.date}
+                                    name="preferred_date"
+                                    value={formData.preferred_date}
                                     onChange={handleChange}
                                     required
                                     className="border rounded p-2 w-full"
                                 />
                                 <input
                                     type="time"
-                                    name="time"
-                                    value={formData.time}
+                                    name="preferred_time"
+                                    value={formData.preferred_time}
                                     onChange={handleChange}
                                     required
                                     className="border rounded p-2 w-full"
@@ -222,8 +203,8 @@ const AdminAppointment = () => {
                             </div>
 
                             <textarea
-                                name="message"
-                                value={formData.message}
+                                name="description"
+                                value={formData.description}
                                 onChange={handleChange}
                                 placeholder="Description"
                                 className="border rounded p-2 w-full"
@@ -232,14 +213,14 @@ const AdminAppointment = () => {
                             <div className="flex justify-between">
                                 <button
                                     type="submit"
-                                    className="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 transition duration-200"
+                                    className="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700"
                                 >
                                     {editingId ? 'Update' : 'Create'} Appointment
                                 </button>
                                 <button
                                     type="button"
                                     onClick={resetForm}
-                                    className="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-700 transition duration-200"
+                                    className="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-700"
                                 >
                                     Cancel
                                 </button>
@@ -248,59 +229,47 @@ const AdminAppointment = () => {
                     )}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        {/* Left Column - Appointment list */}
-                        <div className="space-y-4">
+                        <div>
                             <h2 className="text-xl font-semibold mb-4">Appointments</h2>
-                            <ul>
-                                {appointments.map(appointment => (
-                                    <li
-                                        key={appointment.id}
-                                        className="bg-gray-100 hover:bg-gray-200 p-4 mt-4 mb-4 rounded flex items-center justify-between"
-                                    >
-                                        <div className="flex-1" onClick={() => handleViewDetails(appointment.id)}>
-                                            <p
-                                                className="font-medium cursor-pointer"
-                                            >
-                                                {appointment.name}
-                                            </p>
-                                            <p className="text-sm text-gray-600">{appointment.service_needed}</p>
-                                        </div>
-                                        <div className="space-x-2">
-                                            <button
-                                                onClick={() => handleEdit(appointment.id)}
-                                                className="text-blue-600 hover:underline"
-                                            >
-                                                Edit
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(appointment.id)}
-                                                className="text-red-600 hover:underline"
-                                            >
-                                                Delete
-                                            </button>
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
+                            {appointments.map(appointment => (
+                                <div
+                                    key={appointment.id}
+                                    className="bg-white p-4 rounded shadow mb-4 flex justify-between items-center"
+                                >
+                                    <div onClick={() => handleViewDetails(appointment.id)} className="cursor-pointer">
+                                        <p className="font-bold">{appointment.name}</p>
+                                        <p className="text-gray-600">{appointment.service_needed}</p>
+                                    </div>
+                                    <div className="space-x-2">
+                                        <button onClick={() => handleEdit(appointment.id)} className="text-blue-500">Edit</button>
+                                        <button onClick={() => handleDelete(appointment.id)} className="text-red-500">Delete</button>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
 
-                        {/* Right Column - Detailed information */}
-                        <div className="bg-white p-6 shadow-lg rounded">
+                        <div className="bg-white p-6 shadow rounded">
                             {detailId ? (
                                 <>
                                     <h3 className="text-xl font-semibold mb-4">Appointment Details</h3>
-                                    <div>
-                                        <p><strong>Name:</strong> {appointments.find(a => a.id === detailId).name}</p>
-                                        <p><strong>Email:</strong> {appointments.find(a => a.id === detailId).email}</p>
-                                        <p><strong>Phone:</strong> {appointments.find(a => a.id === detailId).phone}</p>
-                                        <p><strong>Service:</strong> {appointments.find(a => a.id === detailId).service_needed}</p>
-                                        <p><strong>Date:</strong> {appointments.find(a => a.id === detailId).preferred_date}</p>
-                                        <p><strong>Time:</strong> {appointments.find(a => a.id === detailId).preferred_time}</p>
-                                        <p><strong>Message:</strong> {appointments.find(a => a.id === detailId).description}</p>
-                                    </div>
+                                    {appointments.filter(a => a.id === detailId).map(detail => (
+                                        <div key={detail.id}>
+                                            <p><strong>Appointment ID:</strong> {detail.id}</p>
+                                            <p><strong>Lawyer:</strong> {detail.lawyer}</p>
+                                            <p><strong>Name:</strong> {detail.name}</p>
+                                            <p><strong>Email:</strong> {detail.email}</p>
+                                            <p><strong>Phone:</strong> {detail.phone}</p>
+                                            <p><strong>Service:</strong> {detail.service_needed}</p>
+                                            <p><strong>Date:</strong> {detail.preferred_date}</p>
+                                            <p><strong>Time:</strong> {detail.preferred_time}</p>
+                                            <p><strong>Description:</strong> {detail.description}</p>
+                                            <p><strong>Seen:</strong> {detail.isseen ? 'Yes' : 'No'}</p>
+                                            <p><strong>Created At:</strong> {new Date(detail.created_at).toLocaleString()}</p>
+                                        </div>
+                                    ))}
                                     <button
                                         onClick={() => setDetailId(null)}
-                                        className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition duration-200 mt-4"
+                                        className="bg-gray-600 text-white px-4 py-2 rounded mt-4"
                                     >
                                         Close
                                     </button>

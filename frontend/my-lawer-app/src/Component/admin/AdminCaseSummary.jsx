@@ -27,6 +27,7 @@ const AdminCaseSummary = () => {
         case_type: '',
         filed_date: '',
         status: 'active',
+        user_id: '',
     });
     const [editingId, setEditingId] = useState(null);
     const [selectedCaseId, setSelectedCaseId] = useState(null);
@@ -58,6 +59,7 @@ const AdminCaseSummary = () => {
             case_type: formData.case_type,
             filed_date: formData.filed_date,
             status: formData.status,
+            user_id: formData.user_id,
         };
 
         const method = editingId ? 'put' : 'post';
@@ -79,12 +81,14 @@ const AdminCaseSummary = () => {
     const handleEdit = (id) => {
         const caseSummary = caseSummaries.find(cs => cs.id === id);
         if (caseSummary) {
+            console.log(caseSummary);
             setEditingId(id);
             setFormData({
                 case_number: caseSummary.case_number,
                 case_type: caseSummary.case_type,
                 filed_date: caseSummary.filed_date,
                 status: caseSummary.status,
+                user_id: caseSummary.user.id,
             });
             setShowModal(true);
         }
@@ -139,6 +143,7 @@ const AdminCaseSummary = () => {
                                     name="case_number"
                                     value={formData.case_number}
                                     onChange={handleChange}
+                                    readOnly
                                     placeholder="Case Number"
                                     required
                                     className="border rounded p-2 w-full"

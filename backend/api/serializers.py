@@ -90,7 +90,15 @@ class AppointmentSerializer(serializers.ModelSerializer):
 class ContactMessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContactMessage
-        fields = ["id", "name", "email", "phone", "message"]
+        fields = [
+            "id",
+            "name",
+            "email",
+            "phone",
+            "message",
+            "created_at",
+        ]
+        read_only_fields = ["created_at"]
 
     def validate_name(self, value):
         if not value.strip():
