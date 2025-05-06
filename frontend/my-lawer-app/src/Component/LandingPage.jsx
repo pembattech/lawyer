@@ -9,10 +9,71 @@ import moneyImage from "../assets/money.jpg";
 
 const LandingPage = () => {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    message: "",
+  });
+  const [formSubmitted, setFormSubmitted] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     setIsLoaded(true);
   }, []);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.name.trim()) newErrors.name = "Name is required.";
+    if (!formData.email.trim()) newErrors.email = "Email is required.";
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Invalid email format.";
+    if (!formData.phone.trim()) newErrors.phone = "Phone number is required.";
+    else if (!/^\d{10}$/.test(formData.phone)) newErrors.phone = "Phone must be 10 digits.";
+    if (!formData.message.trim()) newErrors.message = "Message is required.";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    setLoading(true);
+
+    try {
+      const res = await fetch("http://127.0.0.1:8000/api/contact-messages/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (res.ok) {
+        alert("Message sent successfully!");
+        setFormData({ name: "", email: "", phone: "", message: "" });
+        setFormSubmitted(true);
+        setErrors({});
+      } else {
+        alert("Failed to submit. Please try again.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("An error occurred. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   return (
     <div className="min-h-screen flex flex-col font-sans bg-slate-50">
@@ -39,7 +100,7 @@ const LandingPage = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
-                to="/contact"
+                to="/AppointmentPage"
                 className="bg-white text-blue-900 hover:bg-blue-100 font-medium px-8 py-4 rounded-lg shadow-lg transition duration-300 text-center transform hover:-translate-y-1"
               >
                 Get Free Consultation
@@ -261,7 +322,7 @@ const LandingPage = () => {
           <div className="mt-12 text-center">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Link
-                to="/team"
+                to="/AppointmentPage"
                 className="border-2 border-white text-white hover:bg-white hover:text-blue-900 px-8 py-4 rounded-lg inline-block transition duration-300 font-medium"
               >
                 MEET OUR ATTORNEYS
@@ -345,7 +406,7 @@ const LandingPage = () => {
             className="mt-16 text-center"
           >
             <Link
-              to="/contact"
+              to="/ContactPage"
               className="bg-blue-800 hover:bg-blue-900 text-white font-medium px-8 py-4 rounded-lg shadow-lg transition duration-300 inline-block transform hover:-translate-y-1"
             >
               TAKE THE FIRST STEP
@@ -376,77 +437,65 @@ const LandingPage = () => {
           </motion.div>
 
           <div className="max-w-3xl mx-auto bg-white/10 backdrop-blur-sm rounded-xl p-8 border border-white/20">
-            <form className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-blue-200 text-sm font-medium mb-2">
-                    Your Name
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Full Name"
-                    className="w-full p-4 bg-white/5 border border-white/20 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-blue-200 text-sm font-medium mb-2">
-                    Your Email
-                  </label>
-                  <input
-                    type="email"
-                    placeholder="email@example.com"
-                    className="w-full p-4 bg-white/5 border border-white/20 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none text-white"
-                  />
-                </div>
-              </div>
-
+            <form
+              onSubmit={handleSubmit}
+              className="p-8 space-y-6"
+            >
               <div>
-                <label className="block text-blue-200 text-sm font-medium mb-2">
-                  Your Phone
-                </label>
+                <label className="block text-blue-200 text-sm font-medium mb-2">Name</label>
                 <input
-                  type="tel"
-                  placeholder="+977 XX XXXX XXX"
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
                   className="w-full p-4 bg-white/5 border border-white/20 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none text-white"
                 />
+                {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
               </div>
 
               <div>
-                <label className="block text-blue-200 text-sm font-medium mb-2">
-                  Service Needed
-                </label>
-                <select className="w-full p-4 bg-white/5 border border-white/20 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none text-white">
-                  <option value="" disabled selected>
-                    Select a service
-                  </option>
-                  <option value="money-laundering">Money Laundering</option>
-                  <option value="family-law">Family Law</option>
-                  <option value="corporate">Corporate Law</option>
-                  <option value="other">Other Services</option>
-                </select>
+                <label className="block text-blue-200 text-sm font-medium mb-2">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className="w-full p-4 bg-white/5 border border-white/20 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none text-white"
+                />
+                {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
               </div>
 
               <div>
-                <label className="block text-blue-200 text-sm font-medium mb-2">
-                  Your Message
-                </label>
+                <label className="block text-blue-200 text-sm font-medium mb-2">Phone</label>
+                <input
+                  type="text"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  className="w-full p-4 bg-white/5 border border-white/20 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none text-white"
+                />
+                {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
+              </div>
+
+              <div>
+                <label className="block text-blue-200 text-sm font-medium mb-2">Message</label>
                 <textarea
-                  placeholder="Please describe your legal matter..."
+                  name="message"
                   rows="4"
-                  className="w-full p-4 bg-white/5 border border-white/20 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none text-white resize-none"
+                  value={formData.message}
+                  onChange={handleInputChange}
+                  className="w-full p-4 bg-white/5 border border-white/20 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none text-white"
                 ></textarea>
+                {errors.message && <p className="text-red-500 text-sm mt-1">{errors.message}</p>}
               </div>
 
-              <div className="text-center">
-                <motion.button
-                  type="submit"
-                  className="bg-white text-blue-900 hover:bg-blue-100 font-medium px-8 py-4 rounded-lg shadow-lg transition duration-300 transform hover:-translate-y-1"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  SUBMIT YOUR INQUIRY
-                </motion.button>
-              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="bg-white text-blue-900 hover:bg-blue-100 font-medium px-8 py-4 rounded-lg shadow-lg transition duration-300 transform hover:-translate-y-1"
+              >
+                {loading ? "Sending..." : "Send Message"}
+              </button>
             </form>
           </div>
         </div>

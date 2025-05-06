@@ -16,24 +16,60 @@ const ServicesPage = () => {
     message: "",
   });
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevState) => ({
-      ...prevState,
+    setFormData((prev) => ({
+      ...prev,
       [name]: value,
+    }));
+    setErrors((prev) => ({
+      ...prev,
+      [name]: "",
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Form submission logic would go here
-    setFormSubmitted(true);
-    // Reset form after successful submission
-    setTimeout(() => {
-      setFormData({ name: "", email: "", phone: "", message: "" });
-      setFormSubmitted(false);
-    }, 3000);
+
+    // Frontend validation
+    const newErrors = {};
+    if (!formData.name.trim()) newErrors.name = "Name is required.";
+    if (!formData.email.trim()) newErrors.email = "Email is required.";
+    if (!formData.message.trim()) newErrors.message = "Message is required.";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:8000/api/contact-messages/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setFormSubmitted(true);
+        setFormData({ name: "", email: "", phone: "", message: "" });
+        setErrors({});
+        setTimeout(() => {
+          setFormSubmitted(false);
+        }, 3000);
+      } else {
+        // Backend validation errors
+        setErrors(data);
+      }
+    } catch (error) {
+      console.error("Form submit error:", error);
+      alert("Something went wrong. Please try again later.");
+    }
   };
 
   const services = [
@@ -140,9 +176,11 @@ const ServicesPage = () => {
                           value={formData.name}
                           onChange={handleInputChange}
                           placeholder="Your Name"
-                          className="w-full p-3 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                          className={`w-full p-3 border ${errors.name ? "border-red-500" : "border-blue-300"
+                            } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition`}
                           required
                         />
+                        {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
                       </div>
                       <div>
                         <input
@@ -152,9 +190,11 @@ const ServicesPage = () => {
                           value={formData.email}
                           onChange={handleInputChange}
                           placeholder="Your Email"
-                          className="w-full p-3 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                          className={`w-full p-3 border ${errors.email ? "border-red-500" : "border-blue-300"
+                            } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition`}
                           required
                         />
+                        {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
                       </div>
                       <div>
                         <input
@@ -175,9 +215,11 @@ const ServicesPage = () => {
                           onChange={handleInputChange}
                           placeholder="Your Message"
                           rows="4"
-                          className="w-full p-3 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                          className={`w-full p-3 border ${errors.message ? "border-red-500" : "border-blue-300"
+                            } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition`}
                           required
                         ></textarea>
+                        {errors.message && <p className="text-red-500 text-sm mt-1">{errors.message}</p>}
                       </div>
                       <button
                         type="submit"
